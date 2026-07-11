@@ -15,6 +15,8 @@ WORKDIR /app
 COPY --from=builder /app/devboard-backend ./devboard-backend
 
 # Ensure binary is executable
+RUN addgroup -S nonroot && adduser -S nonroot -G nonroot
+
 RUN chmod +x ./devboard-backend
 
 # DHI image runs as nonroot by default
