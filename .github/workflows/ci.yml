@@ -6,7 +6,7 @@ on:
 
 jobs:
   build-and-push:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
@@ -15,8 +15,15 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Docker Build and Push
-        uses: docker/build-push-action@v7
-        with:
-          push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/devboard-frontend:latest
+
+      - name: Verify Compose
+        run: docker compose version
+
+      - name: Stop existing containers
+        run: docker compose down
+
+      - name: Build images
+        run: docker compose build
+
+      - name: Start application
+        run: docker compose up -d
