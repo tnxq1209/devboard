@@ -75,7 +75,7 @@ jobs:
             - name: Docker Build and Push
               uses: docker/build-push-action@v7
               with:
-                context: ./${{ matrix.service }}
+                context: ${{ matrix.service }}
                 push: true
                 tags: ${{ secrets.DOCKERHUB_USERNAME }}/devboard-${{ matrix.service }}:latest    
     deploy:
