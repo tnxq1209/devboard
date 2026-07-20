@@ -38,8 +38,6 @@ jobs:
                 push: true
                 tags: ${{ secrets.DOCKERHUB_USERNAME }}/devboard-frontend:latest
 
-
-
     backend:
         runs-on: ubuntu-latest
         steps:
@@ -78,3 +76,8 @@ jobs:
                 context: ./backend
                 push: true
                 tags: ${{ secrets.DOCKERHUB_USERNAME }}/devboard-backend:latest
+
+    deploy:
+        needs: [frontend, backend]
+        uses: ./.github/workflows/cd.yml
+        secrets: inherit
