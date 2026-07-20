@@ -2,7 +2,7 @@
 name: matrix
 
 on: 
-    workflows_dispatch:
+    workflow_dispatch:
 
 jobs:
     code-format:
