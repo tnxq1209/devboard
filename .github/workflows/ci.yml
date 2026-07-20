@@ -26,5 +26,13 @@ jobs:
             - name: Run Tests
               run: npm run test
               working-directory: ./frontend
+            - name: Docker Build and Push
+              uses: docker/build-push-action@v7
+              with:
+                context: ./frontend
+                push: true
+                tags: ${{ secrets.DOCKERHUB_USERNAME }}/devboard-frontend:latest
+
+
 
     #backend:
