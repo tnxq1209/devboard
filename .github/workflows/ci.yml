@@ -66,6 +66,8 @@ jobs:
             matrix:
                 folder: [frontend, backend]
         steps:
+            - name: Code Checkout
+              uses: actions/checkout@v4
             - name: Docker login
               uses: docker/login-action@v3
               with:
