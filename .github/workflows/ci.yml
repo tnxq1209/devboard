@@ -40,4 +40,35 @@ jobs:
 
 
 
-    #backend:
+    backend:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Code Checkout
+              uses: actions/checkout@v4
+            - name: Set up Go
+              uses: actions/setup-go@v6
+              with:
+                  go-version: '1.23'
+                  go-version-file: backend/go.mod
+                  cache: 'go'
+                  cache-dependency-path: backend/go.sum
+            - name: Install dependencies
+              run: go mod tidy
+              working-directory: ./backend
+            - name: Run lint
+              run: golangci-lint run
+              working-directory: ./backend
+            - name: Run Tests
+              run: go test ./...
+              working-directory: ./backend
+            - name: Docker login
+              uses: docker/login-action@v2
+              with:
+                username: ${{ secrets.DOCKERHUB_USERNAME }}
+                password: ${{ secrets.DOCKERHUB_TOKEN }}
+            - name: Docker Build and Push
+              uses: docker/build-push-action@v7
+              with:
+                context: ./backend
+                push: true
+                tags: ${{ secrets.DOCKERHUB_USERNAME }}/devboard-backend:latest
