@@ -54,9 +54,16 @@ jobs:
             - name: Install dependencies
               run: go mod tidy
               working-directory: ./backend
-            - name: Run lint
-              run: golangci-lint run
+            - name: Run go fmt
+              run: go fmt ./...
               working-directory: ./backend
+            - name: Run Go Vet
+              run: go vet ./...
+              working-directory: ./backend
+            - name: Run lint
+              uses: golangci/golangci-lint-action@v6
+              with:
+                  working-directory: ./backend
             - name: Run Tests
               run: go test ./...
               working-directory: ./backend
