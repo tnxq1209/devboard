@@ -1,29 +1,27 @@
+# lint build and test the fronend and backend code
 name: CI
 
 on:
-  push:
-    branches: [actions]
-
+    push:
+        branches: [ actions ]
+        
 jobs:
-  build-and-push:
-    runs-on: self-hosted
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v7
-      - name: Docker Setup
-        uses: docker/login-action@v4
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+    frontend:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Code Checkout
+              uses: actions/checkout@v4
+            - name: Set up Node.js
+              uses: actions/setup-node@v6
+              with:
+                  node-version: '20'
+                  cache: 'npm'
+                  cache-dependency-path: frontend/package-lock.json
+            - name: Install dependencies
+              run: npm install
+            - name: Run lint
+              run: npm run lint
+            - name: Run Tests
+              run: npm run test
 
-      - name: Verify Compose
-        run: docker compose version
-
-      - name: Stop existing containers
-        run: docker compose down
-
-      - name: Build images
-        run: docker compose build
-
-      - name: Start application
-        run: docker compose up -d
+    #backend:
