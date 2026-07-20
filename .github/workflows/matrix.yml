@@ -20,9 +20,6 @@ jobs:
                   go-version: ${{ matrix.go-version }}
                   go-version-file: backend/go.modss
                   cache-dependency-path: backend/go.sum
-            - name: Install dependencies
-              run: go mod tidy
-              working-directory: ./backend
             - name: Run go fmt
               run: go fmt ./...
               working-directory: ./backend
