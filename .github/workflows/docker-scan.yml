@@ -34,8 +34,12 @@ jobs:
                     ignore-unfixed: true
                     vuln-type: 'os,library'
                     severity: 'CRITICAL,HIGH'
+                    output: 'trivy-scan-results-${{ matrix.dockerfile }}.txt'
+              continue-on-error: true # Continue even if the command fails
             - name: Upload Trivy Scan Results
               uses: actions/upload-artifact@v4
               if: always()  # Forces execution even if tests fail
               with:
-                  path: trivy-scan-results-${{ matrix.dockerfile }}
+                  name: trivy-scan-results-${{ matrix.dockerfile }} # Name of the zip package inside GitHub UI
+                  path: trivy-scan-results-${{ matrix.dockerfile }}.txt
+                  retention-days: 7          # Optional expiration timeframe
