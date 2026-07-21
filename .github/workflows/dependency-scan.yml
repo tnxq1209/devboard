@@ -17,10 +17,11 @@ jobs:
                   cache: 'npm'
                   cache-dependency-path: frontend/package-lock.json
             - name: Install dependencies
-              run: npm ci --ignore-scripts
+              run: npm ci
               working-directory: ./frontend
             - name: Run Dependency Scan
               run: npm audit --audit-level=high
+              working-directory: ./frontend
     dependency-scan-backend:
         runs-on: ubuntu-latest
         steps:
