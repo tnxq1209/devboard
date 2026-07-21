@@ -8,7 +8,7 @@ on:
 
 jobs:
     code-quality:
-        uses: ./.github/workflows/sonar-scan.yml
+        uses: ./.github/workflows/code-quality.yml
    #dependency-scan:
     #   uses: ./.github/workflows/dependency-scan.yml
     #ecret-scanning:
