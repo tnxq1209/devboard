@@ -37,3 +37,5 @@ jobs:
               working-directory: ./backend
             - name: Run Dependency Scan
               uses: golang/govulncheck-action@v1
+              with:  
+                work-dir: './backend'
