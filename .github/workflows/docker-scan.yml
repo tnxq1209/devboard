@@ -8,6 +8,7 @@ jobs:
     docker-scan:
         runs-on: ubuntu-latest
         strategy:
+            fail-fast: false #if one of the matrix jobs fails, the other jobs will continue to run
             matrix:
                 dockerfile: [frontend,backend]
         steps:
@@ -33,3 +34,7 @@ jobs:
                     ignore-unfixed: true
                     vuln-type: 'os,library'
                     severity: 'CRITICAL,HIGH'
+            - name: Upload Trivy Scan Results
+              uses: actions/upload-artifact@v3
+              with:
+                  path: trivy-scan-results-${{ matrix.dockerfile }}
