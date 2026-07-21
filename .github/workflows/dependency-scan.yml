@@ -1,1 +1,40 @@
-# Dependency Scan
+# Dependency Scan to ensure that the project dependencies are up to date and free from known vulnerabilities.
+name: Dependency Scan
+
+on:
+    workflow_call:
+
+jobs:
+    dependency-scan-frontend:
+        runs-on: ubuntu-latest
+        steps:
+            - name: code checkout
+              uses: actions/checkout@v4
+            - name: Set up Node.js
+              uses: actions/setup-node@v6
+              with:
+                  node-version: '20'
+                  cache: 'npm'
+                  cache-dependency-path: frontend/package-lock.json
+            - name: Install dependencies
+              run: npm ci --ignore-scripts
+              working-directory: ./frontend
+            - name: Run Dependency Scan
+              run: npm audit --audit-level=high
+    dependency-scan-backend:
+        runs-on: ubuntu-latest
+        steps:
+            - name: code checkout
+              uses: actions/checkout@v4
+            - name: Set up Go
+              uses: actions/setup-go@v6
+              with:
+                  go-version: '1.22'
+                  go-version-file: backend/go.mod
+                  cache: 'go'
+                  cache-dependency-path: backend/go.sum
+            - name: Install dependencies
+              run: go mod download
+              working-directory: ./backend
+            - name: Run Dependency Scan
+              uses: golang/govulncheck-action@v1
