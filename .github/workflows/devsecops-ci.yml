@@ -1,0 +1,15 @@
+# The DevSecOps workflows calling multiple security scans for the project.
+# This workflow will run on every push and pull request to the main branch,
+# and will scan the code for vulnerabilities using SonarQube, Dependency Scanning, Secret Scanning, and Docker Scanning.
+name: DevSecOps CI
+
+on:
+    workflow_dispatch:  
+
+jobs:
+    code-quality:
+        uses: ./.github/workflows/sonar-scan.yml
+   #dependency-scan:
+    #   uses: ./.github/workflows/dependency-scan.yml
+    #ecret-scanning:
+     #  uses: ./.github/workflows/secret-scanning.yml
