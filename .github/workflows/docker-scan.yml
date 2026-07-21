@@ -23,12 +23,12 @@ jobs:
                   username: ${{ secrets.DOCKERHUB_USERNAME }}
                   password: ${{ secrets.DOCKERHUB_TOKEN }}
             - name: Build Docker ${{ matrix.dockerfile }} Image
-              run: docker build -t ${{ secrets.DOCKER_USERNAME }}/${{ matrix.dockerfile }} ./${{ matrix.dockerfile }}
+              run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.dockerfile }} ./${{ matrix.dockerfile }}
               working-directory: ./${{ matrix.dockerfile }}
             - name: Scan Docker ${{ matrix.dockerfile }} Image
               uses: aquasecurity/trivy-action@v0.36.0
               with:
-                    image-ref: ${{ secrets.DOCKER_USERNAME }}/${{ matrix.dockerfile }}
+                    image-ref: ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.dockerfile }}
                     format: 'table'
                     exit-code: '1'
                     ignore-unfixed: true
