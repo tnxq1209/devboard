@@ -1,1 +1,20 @@
 # Ensure Docker images are scanned for vulnerabilities 
+name: Docker Scan
+
+on:
+    workflow_call:
+
+jobs:
+    docker-scan:
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                dockerfile: [frontend,backend]
+        steps:
+            - name: code checkout
+              uses: actions/checkout@v4
+            - name: Docker lint
+              uses: hadolint/hadolint-action@v3.1.0
+              with:
+                  dockerfile: ./${{ matrix.dockerfile }}/Dockerfile
+                  
