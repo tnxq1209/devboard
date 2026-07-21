@@ -38,6 +38,6 @@ jobs:
               working-directory: ./backend
             - name: Run Dependency Scan
               run: |
-                go install golang.org/x/vuln/cmd/govulncheck@v1.3.0
+                go install golang.org/x/vuln/cmd/govulncheck@v1.18.0
                 govulncheck ./...
               working-directory: ./backend
