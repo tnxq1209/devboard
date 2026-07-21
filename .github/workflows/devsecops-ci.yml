@@ -4,12 +4,14 @@
 name: DevSecOps CI
 
 on:
-    workflow_dispatch:  
+    push:
+        branches:
+            - master
 
 jobs:
     code-quality:
         uses: ./.github/workflows/code-quality.yml
    #dependency-scan:
     #   uses: ./.github/workflows/dependency-scan.yml
-    #ecret-scanning:
-     #  uses: ./.github/workflows/secret-scanning.yml
+    secret-scanning:
+        uses: ./.github/workflows/secret-scanning.yml
