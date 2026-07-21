@@ -43,8 +43,7 @@ jobs:
               run: go vet ./...
               working-directory: ./backend
             - name: Run lint
-              uses: golangci/golangci-lint-action@v6
+              uses: golangci/golangci-lint-action@v7
               with:
-                  version: v2.4.0
                   working-directory: ./backend
                   skip-cache: true
