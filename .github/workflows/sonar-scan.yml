@@ -1,0 +1,1 @@
+# security scan in line with the GitHub security best practices. This workflow will run on every push and pull request to the main branch, and will scan the code for vulnerabilities using SonarQube.
