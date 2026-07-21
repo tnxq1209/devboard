@@ -27,7 +27,7 @@ jobs:
               if: always()  # Forces execution even if tests fail
               with:
                 name: frontend-vuln-report # Name of the zip package inside GitHub UI
-                path: frontend-vuln-report.json     # Absolute or relative path to your file
+                path: reports/frontend-vuln-report.txt     # Absolute or relative path to your file
                 retention-days: 7          # Optional expiration timeframe
     dependency-scan-backend:
         runs-on: ubuntu-latest
@@ -54,5 +54,5 @@ jobs:
               if: always()  # Forces execution even if tests fail
               with:
                 name: backend-vuln-report # Name of the zip package inside GitHub UI
-                path: backend-vuln-report.json     # Absolute or relative path to your file
+                path: reports/backend-vuln-report.txt     # Absolute or relative path to your file
                 retention-days: 7          # Optional expiration timeframe
