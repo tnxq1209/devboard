@@ -11,9 +11,15 @@ on:
 jobs:
     code-quality:
         uses: ./.github/workflows/code-quality.yml
+
     dependency-scan:
         uses: ./.github/workflows/dependency-scan.yml
+
     secret-scanning:
         uses: ./.github/workflows/secret-scanning.yml
+
     docker-scan:
         uses: ./.github/workflows/docker-scan.yml
+        secrets: inherit
+
+    
