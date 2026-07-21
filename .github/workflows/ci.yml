@@ -6,7 +6,7 @@ on:
         paths-ignore:
             - 'README.md'
             - 'LICENSE'
-            #- '!.github/workflows/**' # uncomment this if you dont want the ci workflow to run on every push in workflow directory.
+            - '.github/workflows/**' # uncomment this if you dont want the ci workflow to run on every push in workflow directory.
         branches: [ actions ]
         
 jobs:
