@@ -35,6 +35,7 @@ jobs:
                     vuln-type: 'os,library'
                     severity: 'CRITICAL,HIGH'
             - name: Upload Trivy Scan Results
-              uses: actions/upload-artifact@v3
+              uses: actions/upload-artifact@v4
+              if: always()  # Forces execution even if tests fail
               with:
                   path: trivy-scan-results-${{ matrix.dockerfile }}
