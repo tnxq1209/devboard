@@ -36,6 +36,7 @@ jobs:
               run: go mod download
               working-directory: ./backend
             - name: Run Dependency Scan
+              id: govulncheck
               uses: golang/govulncheck-action@v1
               with:  
                 work-dir: './backend'
