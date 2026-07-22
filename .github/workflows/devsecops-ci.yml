@@ -38,8 +38,10 @@ jobs:
         needs: [build-and-push]
         uses: ./.github/workflows/cd.yml
         secrets: inherit
-        
-
+    OWASP:
+        needs: [deploy]
+        uses: ./.github/workflows/dast.yml
+        secrets: inherit
 
     
     
