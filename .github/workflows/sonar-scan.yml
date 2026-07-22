@@ -1,1 +1,17 @@
 # security scan in line with the GitHub security best practices. This workflow will run on every push and pull request to the main branch, and will scan the code for vulnerabilities using SonarQube.
+name: Sonar Scan
+
+on:
+    workflow_call:
+
+jobs:
+    sonar-scan:
+        runs-on: ubuntu-latest
+        steps:
+            - name: code checkout   
+              uses: actions/checkout@v7
+            - name: SonarQube Scan
+              uses: SonarSource/sonarqube-scan-action@v8.2.0 # Ex: v4.1.0 or sha1, See the latest version at https://github.com/marketplace/actions/official-sonarqube-scan
+                env:
+                    SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+                    SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
