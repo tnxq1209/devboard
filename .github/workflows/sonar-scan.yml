@@ -9,7 +9,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: code checkout   
-              uses: actions/checkout@v7
+              uses: actions/checkout@v4
             - name: SonarQube Scan
               uses: SonarSource/sonarqube-scan-action@v8.2.0 # Ex: v4.1.0 or sha1, See the latest version at https://github.com/marketplace/actions/official-sonarqube-scan
                 env:
