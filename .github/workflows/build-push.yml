@@ -1,5 +1,5 @@
 # Build and Push
-name: Buid and Push
+name: Build and Push
 
 on:
     workflow_call:

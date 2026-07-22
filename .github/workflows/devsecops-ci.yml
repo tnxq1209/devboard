@@ -33,7 +33,7 @@ jobs:
         needs: [code-quality,dependency-scan,secret-scanning,docker-scan,sonar-scan,code-test]
         uses: ./.github/workflows/build-push.yml
         secrets: inherit
-        
+
 
     
     
