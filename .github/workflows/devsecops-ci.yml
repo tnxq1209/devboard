@@ -6,7 +6,7 @@ name: DevSecOps CI
 on:
     push:
         branches:
-            - actions
+            - master
 
 jobs:
     code-quality:
