@@ -20,17 +20,9 @@ jobs:
               run: npm ci
               working-directory: ./frontend
             - name: Run Dependency Scan
-              run: |
-                mkdir -p reports
-                npm audit --audit-level=high | tee reports/frontend-vuln-report.txt
+              run: npm audit --audit-level=high
               working-directory: ./frontend
-            - name: Upload Job Report
-              uses: actions/upload-artifact@v4
-              if: always()  # Forces execution even if tests fail
-              with:
-                name: frontend-vuln-report # Name of the zip package inside GitHub UI
-                path: frontend/reports/frontend-vuln-report.txt     # Absolute or relative path to your file
-                retention-days: 7          # Optional expiration timeframe
+            
     dependency-scan-backend:
         runs-on: ubuntu-latest
         steps:
@@ -47,14 +39,6 @@ jobs:
             - name: Run Dependency Scan
               run: |
                 go install golang.org/x/vuln/cmd/govulncheck@latest
-                mkdir -p reports
-                govulncheck ./... > reports/backend-vuln-report.txt
+                govulncheck ./...
               working-directory: ./backend
-              continue-on-error: true # Continue even if the command fails
-            - name: Upload Job Report
-              uses: actions/upload-artifact@v4
-              if: always()  # Forces execution even if tests fail
-              with:
-                name: backend-vuln-report 
-                path: backend/reports/backend-vuln-report.txt     
-                retention-days: 7         
+              
