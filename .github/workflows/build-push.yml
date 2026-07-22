@@ -27,3 +27,5 @@ jobs:
                 context: ./${{ matrix.folder }}
                 push: true
                 tags: ${{ secrets.DOCKERHUB_USERNAME }}/devboard-${{ matrix.folder }}:latest
+                cache-from: type=gha
+                cache-to: type=gha,mode=max
