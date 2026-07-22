@@ -1,0 +1,41 @@
+# Testing the code
+name: Code Test
+
+on:
+    workflow_call:
+
+jobs:
+    test-frontend:
+        runs-on: ubuntu:latest
+        steps:
+            - name: Code Checkout
+              uses: actions/checkout@v4
+            - name: Set up Node.js
+              uses: actions/setup-node@v6
+              with:
+                  node-version: '24'
+                  cache: 'npm'
+                  cache-dependency-path: frontend/package-lock.json
+            - name: Install dependencies
+              run: npm ci
+              working-directory: frontend
+            - name: Run Tests
+              run: npm run test
+              working-directory: frontend
+
+    test-backend:
+        runs-on: ubuntu:latest
+        steps:
+            - name: Code Checkout
+              uses: actions/checkout@v4
+            - name: Set up Go
+              uses: actions/setup-go@v6
+              with:
+                  go-version-file: backend/go.mod
+                  cache-dependency-path: backend/go.sum
+            - name: Install dependencies
+              run: go mod download
+              working-directory: backend
+            - name: Code test
+              run: go test ./...
+              working-directory: backend
