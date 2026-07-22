@@ -54,8 +54,7 @@ jobs:
               working-directory: ./backend
             - name: Install golangci-lint
               run: | # Using install scipt from golangci-lint to install the latest version of golangci-lint instead of golangci/golangci-lint-action@v6 for artifact uploading purposes.
-                curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh \
-                  | sh -s -- -b /usr/local/bin
+                go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
             - name: Run lint
               working-directory: ./backend
               run: |
