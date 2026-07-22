@@ -44,6 +44,6 @@ jobs:
               run: go vet ./...
               working-directory: ./backend
             - name: Running golangci-lint
-              uses: golangci/golangci-lint-action@v6
+              uses: golangci/golangci-lint-action@v9
               with:
                 working-directory: backend
