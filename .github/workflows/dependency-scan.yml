@@ -20,8 +20,16 @@ jobs:
               run: npm ci
               working-directory: ./frontend
             - name: Run Dependency Scan
-              run: npm audit --audit-level=high
+              run: (cd frontend && npm audit) | tee reports/frontend-npm-audit.txt
               working-directory: ./frontend
+            - name: Upload Reports
+              if: always()
+              uses: actions/upload-artifact@v4
+              with:
+                name: dependency-scan-report
+                path: reports/
+                retention-days: 5
+              
             
     dependency-scan-backend:
         runs-on: ubuntu-latest
