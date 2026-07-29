@@ -20,7 +20,9 @@ jobs:
               run: npm ci
               working-directory: ./frontend
             - name: Run Dependency Scan
-              run: (cd frontend && npm audit) | tee reports/frontend-npm-audit.txt
+              run: |
+                mkdir -p reports
+                (cd frontend && npm audit) | tee reports/frontend-npm-audit.txt
               working-directory: ./frontend
             - name: Upload Reports
               if: always()
