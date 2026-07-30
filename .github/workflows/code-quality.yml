@@ -58,6 +58,7 @@ jobs:
 
         - name: Run Ruff
           run: |
+            cd ai-service
             pip install ruff
             ruff check ai-service
-          working-directory: ./ai-service
+          

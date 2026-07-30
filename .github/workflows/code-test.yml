@@ -50,6 +50,7 @@ jobs:
 
         - name: Python Tests
           run: |
+            cd ai-service
             pip install -r requirements.txt pytest
             python -m pytest
-          working-directory: ./ai-service
+
