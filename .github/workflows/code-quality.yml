@@ -48,3 +48,15 @@ jobs:
               uses: golangci/golangci-lint-action@v9
               with:
                 working-directory: backend
+    sast-ai:
+      runs-on: ubuntu-latest
+      steps:
+        - name: Setup Python
+          uses: actions/setup-python@v5
+          with:
+            python-version: '3.14'
+
+        - name: Run Ruff
+          run: |
+            pip install ruff
+            ruff check ai-service

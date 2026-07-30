@@ -9,7 +9,7 @@ jobs:
         runs-on: ubuntu-latest
         strategy:
             matrix:
-                folder: [frontend, backend]
+                folder: [frontend, backend, ai-service]
         steps:
             - name: Code Checkout
               uses: actions/checkout@v4

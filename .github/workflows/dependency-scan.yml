@@ -50,4 +50,25 @@ jobs:
               uses: golang/govulncheck-action@v1
               with:
                 work-dir: './backend'
-              
+
+    dependency-scan:
+      runs-on: ubuntu-latest
+      steps:
+        - name: Setup Python
+          uses: actions/setup-python@v5
+          with:
+            python-version: '3.14'
+
+        - name: pip-audit
+          continue-on-error: true
+          run: |
+            pip install pip-audit
+            pip-audit -r ai-service/requirements.txt | tee reports/ai-pip-audit.txt
+
+        - name: Upload Reports
+          if: always()
+          uses: actions/upload-artifact@v4
+          with:
+            name: dependency-scan-report
+            path: reports/
+            retention-days: 5

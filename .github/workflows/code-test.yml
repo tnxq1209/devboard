@@ -39,3 +39,17 @@ jobs:
             - name: Code test
               run: go test ./...
               working-directory: backend
+
+    test-ai:
+      runs-on: ubuntu-latest
+      steps:
+        - name: Setup Python
+          uses: actions/setup-python@v5
+          with:
+            python-version: '3.14'
+
+        - name: Python Tests
+          run: |
+            pip install -r requirements.txt pytest
+            python -m pytest
+          working-directory: ai-service
