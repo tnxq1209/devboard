@@ -62,5 +62,5 @@ jobs:
           run: |
             cd ai-service
             pip install ruff
-            ruff check ai-service
+            ruff check .
           
