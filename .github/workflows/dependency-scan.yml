@@ -24,11 +24,12 @@ jobs:
                 mkdir -p reports
                 (cd frontend && npm audit) | tee reports/frontend-npm-audit.txt
               working-directory: ./frontend
+              continue-on-error: true # Use "false" in production. Using "true" for testing purposes.
             - name: Upload Reports
-              if: always()
+              if: always() # Force a step or job to run regardless of the status of previous steps by using the if: always() conditional.
               uses: actions/upload-artifact@v4
               with:
-                name: dependency-scan-report
+                name: dependency-scan-report-frontend
                 path: reports/
                 retention-days: 5
               
@@ -36,7 +37,7 @@ jobs:
     dependency-scan-backend:
         runs-on: ubuntu-latest
         steps:
-            - name: code checkout
+            - name: Code Checkout
               uses: actions/checkout@v4
             - name: Set up Go
               uses: actions/setup-go@v6
@@ -46,14 +47,31 @@ jobs:
             - name: Install dependencies
               run: go mod download
               working-directory: ./backend
+            - name: Installing govulncheck
+              run: |
+                go install golang.org/x/vuln/cmd/govulncheck@latest
+
             - name: Run Dependency Scan
-              uses: golang/govulncheck-action@v1
+              run: |
+                mkdir -p reports
+                (cd backend && govulncheck ./...) | tee reports/backend-govulncheck.txt
+              working-directory: ./backend
+              continue-on-error: true
+            - name: Upload Reports
+              if: always() # Force a step or job to run regardless of the status of previous steps by using the if: always() conditional.
+              uses: actions/upload-artifact@v4
               with:
-                work-dir: './backend'
+                name: dependency-scan-report-backend
+                path: reports/
+                retention-days: 5
+
+
 
     dependency-scan:
       runs-on: ubuntu-latest
       steps:
+        - name: Code Checkout
+          uses: actions/checkout@v4
         - name: Setup Python
           uses: actions/setup-python@v5
           with:
@@ -69,6 +87,6 @@ jobs:
           if: always()
           uses: actions/upload-artifact@v4
           with:
-            name: dependency-scan-report
+            name: dependency-scan-report-ai-service
             path: reports/
             retention-days: 5

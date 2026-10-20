@@ -15,7 +15,7 @@ jobs:
             - name: code checkout
               uses: actions/checkout@v4
             - name: Docker lint
-              uses: hadolint/hadolint-action@v3.1.0
+              uses: hadolint/hadolint-action@v3.1.0 # Lint the Dockerfile for best practices and potential issues.
               with:
                   dockerfile: ./${{ matrix.dockerfile }}/Dockerfile
             - name: Docker Login

@@ -4,6 +4,8 @@ name: Sonar Scan
 on:
     workflow_call:
 
+permissions:
+  contents: read
 jobs:
     sonar-scan:
         runs-on: ubuntu-latest
@@ -16,10 +18,9 @@ jobs:
               uses: actions/cache@v4
               with:
                 path: ~/.sonar/cache
-                key: ${{ runner.os }}-sonar
+                key: ${{ runner.os }}-sonar 
                 restore-keys: ${{ runner.os }}-sonar
-            - name: SonarQube Scan
+            - name: Sonarqube Cloud Scan
               uses: SonarSource/sonarqube-scan-action@v8.2.0 # Ex: v4.1.0 or sha1, See the latest version at https://github.com/marketplace/actions/official-sonarqube-scan
               env:
                 SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-                SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}

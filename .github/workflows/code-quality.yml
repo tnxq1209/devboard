@@ -1,4 +1,6 @@
-# Code Quality Checks using SAST
+# Code Quality Checks using SAST(Static Application Security Testing). We are running the linting and formatting checks for the frontend, backend, and AI service codebases.
+# Lint catches structural bugs, syntax errors, and code smells.
+# Formatting enforce uniform code aesthetics and readability.
 name: Code Quality
 
 on:
@@ -51,7 +53,7 @@ jobs:
     sast-ai:
       runs-on: ubuntu-latest
       steps:
-        - name: Cde Checkout
+        - name: Code Checkout
           uses: actions/checkout@v4
         - name: Setup Python
           uses: actions/setup-python@v5
@@ -63,4 +65,3 @@ jobs:
             cd ai-service
             pip install ruff
             ruff check .
-          
