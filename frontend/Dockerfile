@@ -1,28 +1,23 @@
-FROM dhi.io/node:26-dev AS build
+# Stage 1: Build the React application
+FROM node:24-alpine AS builder
 
 WORKDIR /app
 
-COPY package*.json ./
-
-RUN npm install --legacy-peer-deps
-
-RUN npm list vite > /dev/null 2>&1 || npm install --no-save vite@5.4.11
+COPY package.json package-lock.json ./
+RUN npm ci
 
 COPY . .
-
 RUN npm run build
 
-FROM dhi.io/node:26
+# Stage 2: Serve the static application
+FROM nginx:alpine
 
-WORKDIR /app
+COPY --from=builder /app/dist /usr/share/nginx/html
+COPY nginx.conf.template /etc/nginx/templates/default.conf.template
 
-COPY --from=build /app/dist ./dist
+ENV BACKEND_URL=http://backend:8080
+ENV NGINX_ENVSUBST_FILTER=^BACKEND_URL$
 
-COPY --from=build /app/node_modules ./node_modules
+EXPOSE 80
 
-COPY vite.preview.config.js ./vite.config.js
-
-EXPOSE 4173
-
-ENTRYPOINT ["node", "--no-warnings"]
-CMD ["./node_modules/.bin/vite", "preview", "--host", "0.0.0.0", "--port", "4173"]
+CMD ["nginx", "-g", "daemon off;"]
