@@ -20,17 +20,17 @@ spec:
         # ":ai" includes the AI Assistant page (rebuilt image).
         image: tnxq1209/devboard-frontend:latest
         ports:
-        - containerPort: 4173
+        - containerPort: 80
         livenessProbe:
           httpGet:
             path: /
-            port: 4173
+            port: 80
           initialDelaySeconds: 15
           periodSeconds: 15
         readinessProbe:
           httpGet:
             path: /
-            port: 4173
+            port: 80
           initialDelaySeconds: 5
           periodSeconds: 10
         resources:
@@ -40,6 +40,3 @@ spec:
           limits:
             cpu: 250m
             memory: 128Mi
-
-
-
