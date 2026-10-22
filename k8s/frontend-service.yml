@@ -14,4 +14,4 @@ spec:
   ports:
   - protocol: TCP
     port: 8080       # Service port
-    targetPort: 4173 # Pod port
+    targetPort: 80   # Pod port, its 4173 if not using nginx, 80 with nginx.
