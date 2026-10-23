@@ -78,11 +78,12 @@ jobs:
           with:
             python-version: '3.14'
 
-        - name: pip-audit
-          continue-on-error: true
+        - name: Run dependency scan
+          working-directory: ai-service
           run: |
+            mkdir -p ../reports
             pip install pip-audit
-            pip-audit -r ai-service/requirements.txt | tee reports/ai-pip-audit.txt
+            pip-audit -r requirements.txt | tee ../reports/ai-pip-audit.txt
 
         - name: Upload Reports
           if: always()
