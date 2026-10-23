@@ -39,11 +39,16 @@ jobs:
         steps:
             - name: Code Checkout
               uses: actions/checkout@v4
+          
             - name: Set up Go
               uses: actions/setup-go@v6
               with:
-                  go-version-file: ./backend/go.mod
-                  cache-dependency-path: ./backend/go.sum
+                go-version: '1.27.2'
+                cache-dependency-path: ./backend/go.sum
+            - name: Verify Go version
+              run: |
+                go version
+                go env GOVERSION GOROOT
             - name: Install dependencies
               run: go mod download
               working-directory: ./backend
@@ -67,7 +72,7 @@ jobs:
 
 
 
-    dependency-scan:
+    dependency-scan-ai:
       runs-on: ubuntu-latest
       steps:
         - name: Code Checkout
