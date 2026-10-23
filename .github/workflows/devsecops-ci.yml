@@ -7,6 +7,12 @@ on:
     push:
         branches:
             - master
+        paths:
+            - 'backend/**'
+            - 'frontend/**'
+            - 'ai-service/**'
+            - '.github/workflows/**'
+            - 'sonar-project.properties'
 
 jobs:
     code-quality:
