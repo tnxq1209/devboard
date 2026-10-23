@@ -1,23 +1,34 @@
-FROM golang:1-alpine AS builder
+# syntax=docker/dockerfile:1.7
+
+# Stage 1: Build the Go application
+FROM golang:1.27-alpine AS builder
 
 WORKDIR /app
 
+# Cache dependencies separately from application source
 COPY go.mod go.sum ./
-RUN go mod download
 
+RUN --mount=type=cache,target=/go/pkg/mod \
+    go mod download
+
+# Copy source after dependencies for better layer caching
 COPY . .
-RUN CGO_ENABLED=0 go build -o devboard-backend .
 
-FROM golang:1-alpine
+# Compile a static Linux binary
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    CGO_ENABLED=0 GOOS=linux \
+    go build -trimpath -ldflags="-s -w" \
+    -o /out/devboard-backend .
+
+# Stage 2: Minimal non-root runtime
+FROM gcr.io/distroless/static-debian12:nonroot
 
 WORKDIR /app
 
-COPY --from=builder /app/devboard-backend ./devboard-backend
-
-# Ensure binary is executable
-RUN chmod +x ./devboard-backend
+COPY --from=builder --chown=nonroot:nonroot \
+    /out/devboard-backend ./devboard-backend
 
 EXPOSE 8080
 
-# Use exec form for proper signal handling
-ENTRYPOINT ["./devboard-backend"]
+ENTRYPOINT ["/app/devboard-backend"]
