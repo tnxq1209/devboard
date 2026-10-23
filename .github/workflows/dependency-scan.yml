@@ -54,7 +54,8 @@ jobs:
             - name: Run Dependency Scan
               run: |
                 mkdir -p reports
-                (cd backend && govulncheck ./...) | tee reports/backend-govulncheck.txt
+                cd backend
+                $(go env GOPATH)/bin/govulncheck ./... | tee reports/backend-govulncheck.txt
               working-directory: ./backend
               continue-on-error: true
             - name: Upload Reports
