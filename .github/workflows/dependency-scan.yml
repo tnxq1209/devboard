@@ -24,7 +24,7 @@ jobs:
                 mkdir -p reports
                 (cd frontend && npm audit) | tee reports/frontend-npm-audit.txt
               working-directory: ./frontend
-              continue-on-error: true # Use "false" in production. Using "true" for testing purposes.
+              continue-on-error: false # Use "false" in production. Using "true" for testing purposes.
             - name: Upload Reports
               if: always() # Force a step or job to run regardless of the status of previous steps by using the if: always() conditional.
               uses: actions/upload-artifact@v4
@@ -52,12 +52,11 @@ jobs:
                 go install golang.org/x/vuln/cmd/govulncheck@v1.8.0
 
             - name: Run Dependency Scan
+              working-directory: ./backend
               run: |
                 mkdir -p reports
-                cd backend
                 $(go env GOPATH)/bin/govulncheck ./... | tee reports/backend-govulncheck.txt
-              working-directory: ./backend
-              continue-on-error: true
+              continue-on-error: false
             - name: Upload Reports
               if: always() # Force a step or job to run regardless of the status of previous steps by using the if: always() conditional.
               uses: actions/upload-artifact@v4
