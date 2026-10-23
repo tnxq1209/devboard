@@ -16,15 +16,6 @@ dist/
 # claude's personal scratch notes (local only)
 CLAUDE.md
 
-terraform/backend-s3/.terraform
-terraform/environments/dev/.terraform
-terraform/environments/dev/network/.terraform
-terraform/environments/dev/eks/.terraform
-terraform/environments/dev/addons/.terraform
+**/.terraform/
 
-terraform/backend-s3/.terraform.lock.hcl 
-terraform/environments/dev/.terraform.lock.hcl
-terraform/environments/dev/network/.terraform.lock.hcl
-terraform/environments/dev/eks/.terraform.lock.hcl
-terraform/environments/dev/addons/.terraform.lock.hcl
 
