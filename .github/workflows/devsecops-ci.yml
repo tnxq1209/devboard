@@ -13,6 +13,9 @@ on:
             - 'ai-service/**'
             - '.github/workflows/**'
             - 'sonar-project.properties'
+        path-ignore:
+            - '.github/workflow/terraform.yml'
+            - 'terraform/**'
 
 jobs:
     code-quality:
