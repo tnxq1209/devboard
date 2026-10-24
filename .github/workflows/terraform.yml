@@ -1,0 +1,118 @@
+
+name: Terraform Checks
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - "terraform/**"
+      - ".github/workflows/terraform-ci.yml"
+
+  pull_request:
+    paths:
+      - "terraform/**"
+      - ".github/workflows/terraform-ci.yml"
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  fmt-validate:
+    name: Format and validate
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        dir:
+          - terraform/backend-s3
+          - terraform/cluster/network
+          - terraform/cluster/eks
+          - terraform/cluster/addons
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.16.6"
+          terraform_wrapper: false
+
+      - name: Check formatting
+        working-directory: ${{ matrix.dir }}
+        run: terraform fmt -check -diff
+
+      - name: Initialize Terraform
+        working-directory: ${{ matrix.dir }}
+        run: terraform init -backend=false -input=false
+
+      - name: Validate configuration
+        working-directory: ${{ matrix.dir }}
+        run: terraform validate -no-color
+
+  tflint:
+    name: TFLint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.16.6"
+          terraform_wrapper: false
+
+      - name: Set up TFLint
+        uses: terraform-linters/setup-tflint@v4
+        with:
+          tflint_version: latest
+
+      - name: Initialize TFLint plugins
+        working-directory: terraform
+        run: tflint --init
+
+      - name: Lint Terraform configuration
+        working-directory: terraform
+        run: tflint --recursive --format compact
+
+  checkov:
+    name: Checkov security scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Scan with Checkov
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: terraform
+          framework: terraform
+          soft_fail: true
+          output_format: cli
+          download_external_modules: false
+
+  trivy-config:
+    name: Trivy IaC scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Scan Terraform configuration
+        uses: aquasecurity/trivy-action@0.36.0
+        continue-on-error: true
+        with:
+          scan-type: config
+          scan-ref: terraform
+          format: table
+          severity: HIGH,CRITICAL
+          exit-code: "1"
