@@ -12,9 +12,6 @@ on:
             - 'frontend/**'
             - 'ai-service/**'
             - 'sonar-project.properties'
-        path-ignore:
-            - '.github/workflow/terraform.yml'
-            - 'terraform/**'
 
 jobs:
     code-quality:
@@ -40,4 +37,9 @@ jobs:
     build-and-push:
         needs: [code-quality,dependency-scan,secret-scanning,docker-scan,sonar-scan,code-test]
         uses: ./.github/workflows/build-push.yml
+        secrets: inherit
+    update-manifests:
+        needs:
+            - build-and-push
+        uses: ./.github/workflows/update-manifest.yml
         secrets: inherit
