@@ -10,6 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    env:
+      IMAGE_TAG: sha-${{ github.sha }}
 
     steps:
       - name: Checkout repository
@@ -18,39 +20,38 @@ jobs:
           ref: master
 
       - name: Update application image tags
-        env:
-          IMAGE_TAG: sha-${{ github.sha }}
         shell: bash
         run: |
           set -euo pipefail
 
-          update_image_tag() {
-            local file="$1"
-            local image="$2"
+          python3 - <<'PY'
+          import os
+          import re
+          from pathlib import Path
 
-            if ! grep -qE "${image}:(latest|sha-[[:alnum:]]+)" "$file"; then
-              echo "::error::No matching image tag found for ${image} in ${file}"
-              exit 1
-            fi
+          image_tag = os.environ["IMAGE_TAG"]
 
-            sed -i -E \
-              "s|(${image}:)(latest|sha-[[:alnum:]]+)|\1${IMAGE_TAG}|g" \
-              "$file"
-
-            echo "Updated ${image} to ${IMAGE_TAG} in ${file}"
+          images = {
+              "k8s/on-cluster/ai-service-deployment.yml": "tnxq1209/devboard-ai-service",
+              "k8s/on-cluster/backend-deployment.yml": "tnxq1209/devboard-backend",
+              "k8s/on-cluster/frontend-deployment.yml": "tnxq1209/devboard-frontend",
           }
 
-          update_image_tag \
-            k8s/on-cluster/ai-service-deployment.yml \
-            tnxq1209/devboard-ai-service
+          for filename, image in images.items():
+              path = Path(filename)
+              content = path.read_text()
 
-          update_image_tag \
-            k8s/on-cluster/backend-deployment.yml \
-            tnxq1209/devboard-backend
+              pattern = re.escape(image) + r":(?:latest|sha-[A-Za-z0-9]+)"
+              updated, count = re.subn(pattern, f"{image}:{image_tag}", content)
 
-          update_image_tag \
-            k8s/on-cluster/frontend-deployment.yml \
-            tnxq1209/devboard-frontend
+              if count == 0:
+                  raise SystemExit(
+                      f"ERROR: No matching image tag found for {image} in {filename}"
+                  )
+
+              path.write_text(updated)
+              print(f"Updated {image} to {image_tag} in {filename}")
+          PY
 
       - name: Commit and push manifest changes
         shell: bash
