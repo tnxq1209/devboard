@@ -30,7 +30,7 @@ jobs:
               uses: actions/upload-artifact@v7
               with:
                 name: dependency-scan-report-frontend
-                path: reports/
+                path: reports
                 retention-days: 5
               
             
@@ -67,7 +67,7 @@ jobs:
               uses: actions/upload-artifact@v7
               with:
                 name: dependency-scan-report-backend
-                path: reports/
+                path: reports
                 retention-days: 5
 
 
@@ -94,5 +94,5 @@ jobs:
           uses: actions/upload-artifact@v7
           with:
             name: dependency-scan-report-ai-service
-            path: reports/
+            path: reports
             retention-days: 5
