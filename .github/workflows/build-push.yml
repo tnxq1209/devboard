@@ -54,12 +54,20 @@ jobs:
                 username: ${{ secrets.DOCKERHUB_USERNAME }}
                 password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-            - name: Push verified Docker images
+            - name: Push verified Docker image
               env:
                 IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/devboard-${{ matrix.folder }}
                 IMAGE_TAG: sha-${{ github.sha }}
               run: |
                 set -euo pipefail
-
                 docker push "${IMAGE}:${IMAGE_TAG}"
+
+            - name: Update latest tag
+              if: github.ref == 'refs/heads/master'
+              env:
+                IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/devboard-${{ matrix.folder }}
+                IMAGE_TAG: sha-${{ github.sha }}
+              run: |
+                set -euo pipefail
+                docker tag "${IMAGE}:${IMAGE_TAG}" "${IMAGE}:latest"
                 docker push "${IMAGE}:latest"
