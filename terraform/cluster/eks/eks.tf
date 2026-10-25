@@ -81,6 +81,15 @@ module "eks" {
     }
   }
 
+  access_entries = {
+    github_actions_app_verifier = {
+      principal_arn = "arn:aws:iam::565905128295:role/devboard-terraform-github-actions"
+      kubernetes_groups = [
+        "devboard-app-verifier"
+      ]
+    }
+  }
+
   tags = {
     Project     = "devboard"
     Environment = "dev"
