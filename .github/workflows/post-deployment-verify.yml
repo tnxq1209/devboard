@@ -43,56 +43,34 @@ jobs:
         run: |
           set -euo pipefail
 
-          require_permission() {
-            local verb="$1"
-            local resource="$2"
-            local name="$3"
-            local namespace="$4"
-            local result
+          check="kubectl auth can-i get applications.argoproj.io/devboard-raw -n argocd"
+          result=$(kubectl auth can-i get applications.argoproj.io/devboard-raw -n argocd)
+          if [[ "$result" != "yes" ]]; then
+            echo "ERROR: Cannot read Argo CD application devboard-raw."
+            exit 1
+          fi
 
-            if ! result="$(kubectl auth can-i "$verb" "$resource/$name" -n "$namespace" 2>&1)"; then
-              echo "ERROR: Could not verify permission: $verb $resource/$name in $namespace"
-              echo "$result"
-              return 1
-            fi
+          for deployment in \
+            devboard-frontend-deployment \
+            devboard-backend-deployment \
+            devboard-ai-service-deployment; do
 
+            result=$(kubectl auth can-i get "deployments.apps/$deployment" -n "$NAMESPACE")
             if [[ "$result" != "yes" ]]; then
-              echo "ERROR: Required permission denied: $verb $resource/$name in $namespace"
-              return 1
+              echo "ERROR: Cannot read deployment $deployment."
+              exit 1
             fi
 
-            echo "PASS: Can $verb $resource/$name in $namespace"
-          }
-
-          require_no_permission() {
-            local verb="$1"
-            local resource="$2"
-            local name="$3"
-            local namespace="$4"
-            local result
-
-            if ! result="$((kubectl auth can-i "$verb" "$resource/$name" -n "$namespace" 2>&1)"; then
-              echo "ERROR: Could not verify restricted permission: $verb $resource/$name in $namespace"
-              echo "$result"
-              return 1
-            fi
-
+            result=$(kubectl auth can-i patch "deployments.apps/$deployment" -n "$NAMESPACE")
             if [[ "$result" != "no" ]]; then
-              echo "ERROR: Unexpectedly allowed: $verb $resource/$name in $namespace"
-              return 1
+              echo "ERROR: Unexpected patch permission for $deployment."
+              exit 1
             fi
 
-            echo "PASS: Cannot $verb $resource/$name in $namespace"
-          }
+            echo "PASS: $deployment permissions are correct."
+          done
 
-          require_permission get applications.argoproj.io devboard-raw argocd
-          require_permission get deployments.apps devboard-frontend-deployment "$NAMESPACE"
-          require_permission get deployments.apps devboard-backend-deployment "$NAMESPACE"
-          require_permission get deployments.apps devboard-ai-service-deployment "$NAMESPACE"
-
-          require_no_permission patch deployments.apps devboard-frontend-deployment "$NAMESPACE"
-          require_no_permission patch deployments.apps devboard-backend-deployment "$NAMESPACE"
-          require_no_permission patch deployments.apps devboard-ai-service-deployment "$NAMESPACE"
+          echo "PASS: Argo CD application read permission is correct."
 
       - name: Wait for Argo CD synchronization
         shell: bash
