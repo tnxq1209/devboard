@@ -1,48 +1,74 @@
-name: Docker Scan
+
+name: Update Manifests
 
 on:
-    workflow_call:
+  workflow_call:
 
 jobs:
-    update-manifests:
-        name: Update Kubernetes Image Tags
-        runs-on: ubuntu-latest
-        permissions:
-          contents: write
+  update-manifests:
+    name: Update Kubernetes Image Tags
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
-        steps:
-            - name: Checkout repository
-              uses: actions/checkout@v4
-              with:
-                ref: master
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: master
 
-            - name: Update application image tags
-              env:
-                IMAGE_TAG: sha-${{ github.sha }}
-              run: |
-                sed -i "s|tnxq1209/devboard-ai-service:latest|tnxq1209/devboard-ai-service:${IMAGE_TAG}|" \
-                  k8s/on-cluster/ai-service-deployment.yml
+      - name: Update application image tags
+        env:
+          IMAGE_TAG: sha-${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
 
-                sed -i "s|tnxq1209/devboard-backend:latest|tnxq1209/devboard-backend:${IMAGE_TAG}|" \
-                  k8s/on-cluster/backend-deployment.yml
+          update_image_tag() {
+            local file="$1"
+            local image="$2"
 
-                sed -i "s|tnxq1209/devboard-frontend:latest|tnxq1209/devboard-frontend:${IMAGE_TAG}|" \
-                  k8s/on-cluster/frontend-deployment.yml
+            if ! grep -qE "${image}:(latest|sha-[[:alnum:]]+)" "$file"; then
+              echo "::error::No matching image tag found for ${image} in ${file}"
+              exit 1
+            fi
 
-            - name: Commit and push manifest changes
-              run: |
-                git config user.name "github-actions[bot]"
-                git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            sed -i -E \
+              "s|(${image}:)(latest|sha-[[:alnum:]]+)|\1${IMAGE_TAG}|g" \
+              "$file"
 
-                git add \
-                  k8s/on-cluster/ai-service-deployment.yml \
-                  k8s/on-cluster/backend-deployment.yml \
-                  k8s/on-cluster/frontend-deployment.yml
+            echo "Updated ${image} to ${IMAGE_TAG} in ${file}"
+          }
 
-                if git diff --cached --quiet; then
-                  echo "No manifest changes to commit."
-                  exit 0
-                fi
+          update_image_tag \
+            k8s/on-cluster/ai-service-deployment.yml \
+            tnxq1209/devboard-ai-service
 
-                git commit -m "ci: update images to sha-${GITHUB_SHA}"
-                git push origin HEAD:master 
+          update_image_tag \
+            k8s/on-cluster/backend-deployment.yml \
+            tnxq1209/devboard-backend
+
+          update_image_tag \
+            k8s/on-cluster/frontend-deployment.yml \
+            tnxq1209/devboard-frontend
+
+      - name: Commit and push manifest changes
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add \
+            k8s/on-cluster/ai-service-deployment.yml \
+            k8s/on-cluster/backend-deployment.yml \
+            k8s/on-cluster/frontend-deployment.yml
+
+          if git diff --cached --quiet; then
+            echo "::error::No manifest changes detected; refusing to silently skip the update."
+            exit 1
+          fi
+
+          git commit -m "ci: update images to ${IMAGE_TAG}"
+          git push origin HEAD:master
