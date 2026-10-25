@@ -41,36 +41,67 @@ jobs:
       - name: Verify verifier permissions
         shell: bash
         run: |
-          set -euo pipefail
+          set -uo pipefail
 
-          check="kubectl auth can-i get applications.argoproj.io/devboard-raw -n argocd"
-          result=$(kubectl auth can-i get applications.argoproj.io/devboard-raw -n argocd)
-          if [[ "$result" != "yes" ]]; then
-            echo "ERROR: Cannot read Argo CD application devboard-raw."
-            exit 1
-          fi
+          check_permission() {
+            local description="$1"
+            shift
+
+            echo "Checking: $description"
+
+            local result
+            if ! result=$("$@" 2>&1); then
+              echo "ERROR: Permission check command failed:"
+              echo "$result"
+              return 1
+            fi
+
+            echo "Result: $result"
+            if [[ "$result" != "yes" ]]; then
+              echo "ERROR: Required permission denied: $description"
+              return 1
+            fi
+          }
+
+          check_denied() {
+            local description="$1"
+            shift
+
+            echo "Checking restricted permission: $description"
+
+            local result
+            if ! result=$("$@" 2>&1); then
+              echo "ERROR: Permission check command failed:"
+              echo "$result"
+              return 1
+            fi
+
+            echo "Result: $result"
+            if [[ "$result" != "no" ]]; then
+              echo "ERROR: Permission should be denied: $description"
+              return 1
+            fi
+          }
+
+          check_permission \
+            "Read Argo CD application" \
+            kubectl auth can-i get applications.argoproj.io/devboard-raw -n argocd || exit 1
 
           for deployment in \
             devboard-frontend-deployment \
             devboard-backend-deployment \
             devboard-ai-service-deployment; do
 
-            result=$(kubectl auth can-i get "deployments.apps/$deployment" -n "$NAMESPACE")
-            if [[ "$result" != "yes" ]]; then
-              echo "ERROR: Cannot read deployment $deployment."
-              exit 1
-            fi
+            check_permission \
+              "Read $deployment" \
+              kubectl auth can-i get "deployments.apps/$deployment" -n "$NAMESPACE" || exit 1
 
-            result=$(kubectl auth can-i patch "deployments.apps/$deployment" -n "$NAMESPACE")
-            if [[ "$result" != "no" ]]; then
-              echo "ERROR: Unexpected patch permission for $deployment."
-              exit 1
-            fi
-
-            echo "PASS: $deployment permissions are correct."
+            check_denied \
+              "Patch $deployment" \
+              kubectl auth can-i patch "deployments.apps/$deployment" -n "$NAMESPACE" || exit 1
           done
 
-          echo "PASS: Argo CD application read permission is correct."
+          echo "All verifier permission checks passed."
 
       - name: Wait for Argo CD synchronization
         shell: bash
