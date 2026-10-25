@@ -3,6 +3,10 @@
 # and will scan the code for vulnerabilities using SonarQube, Dependency Scanning, Secret Scanning, and Docker Scanning.
 name: Secure Workflow
 
+concurrency:
+  group: devboard-master-ci
+  cancel-in-progress: false
+
 on:
     push:
         branches:
