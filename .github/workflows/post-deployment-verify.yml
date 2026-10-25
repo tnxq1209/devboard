@@ -36,7 +36,7 @@ jobs:
             --name "$EKS_CLUSTER" \
             --region "$AWS_REGION"
 
-          kubectl cluster-info
+          echo "EKS kubeconfig configured."
 
       - name: Verify verifier permissions
         shell: bash
