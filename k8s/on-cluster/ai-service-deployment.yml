@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: devboard-ai-service
-          image: tnxq1209/devboard-ai-service:sha-683870a94b721623c7de674f28cf896a88e019bc
+          image: tnxq1209/devboard-ai-service:sha-4193ff44eb8ededd3b52d132b21726e644cd5aa7
           ports:
             - containerPort: 3005
           env:
