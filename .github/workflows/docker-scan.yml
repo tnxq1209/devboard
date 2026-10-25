@@ -36,7 +36,7 @@ jobs:
                     severity: 'CRITICAL,HIGH'
                     output: 'trivy-scan-results-${{ matrix.dockerfile }}.txt'
             - name: Upload Trivy Scan Results
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               if: always()  # Forces execution even if tests fail
               with:
                   name: trivy-scan-results-${{ matrix.dockerfile }} # Name of the zip package inside GitHub UI

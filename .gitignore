@@ -9,6 +9,9 @@ dist/
 # env — keep .env local; the committed template is .env.example
 .env
 
+#ai-service
+**/.venv
+
 # misc
 .DS_Store
 *.local
