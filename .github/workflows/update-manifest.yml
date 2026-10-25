@@ -56,6 +56,22 @@ jobs:
               print(f"Updated {image} to {image_tag} in {filename}")
           PY
 
+      - name: Check whether this run is stale
+        shell: bash
+        env:
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          latest_sha="$(git ls-remote origin refs/heads/master | awk '{print $1}')"
+
+          if [[ "$SOURCE_SHA" != "$latest_sha" ]]; then
+            echo "::error::This run is stale. Source commit $SOURCE_SHA is not the latest master commit $latest_sha."
+            exit 1
+          fi
+
+          echo "Source commit is still the latest master commit."
+
       - name: Commit and push manifest changes
         shell: bash
         run: |
