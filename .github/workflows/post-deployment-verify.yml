@@ -71,8 +71,7 @@ jobs:
             local namespace="$4"
             local result
 
-            if ! result="$(kubectl auth can-i "$verb" "$resource" \
-              --resource-name="$name" -n "$namespace" 2>&1)"; then
+            if ! result="$((kubectl auth can-i "$verb" "$resource/$name" -n "$namespace" 2>&1)"; then
               echo "ERROR: Could not verify restricted permission: $verb $resource/$name in $namespace"
               echo "$result"
               return 1
