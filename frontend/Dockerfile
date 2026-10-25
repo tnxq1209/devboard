@@ -12,6 +12,8 @@ RUN npm run build
 # Stage 2: Serve the static application
 FROM nginx:alpine
 
+RUN apk update && apk upgrade --no-cache
+
 COPY --from=builder /app/dist /usr/share/nginx/html
 COPY nginx.conf.template /etc/nginx/templates/default.conf.template
 
