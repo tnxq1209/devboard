@@ -1,0 +1,208 @@
+name: Post-Deployment Verification
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  verify-deployment:
+    name: Verify EKS Deployment
+    runs-on: [self-hosted, linux, eks, app-verify]
+    timeout-minutes: 40
+
+    env:
+      AWS_REGION: ap-south-1
+      EKS_CLUSTER: devboard-eks
+      ARGOCD_APP: devboard-raw
+      NAMESPACE: devboard
+
+    steps:
+      - name: Configure AWS credentials through OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::565905128295:role/devboard-terraform-github-actions
+          aws-region: ap-south-1
+          role-session-name: devboard-post-deployment-verify
+
+      - name: Configure EKS access
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          aws eks update-kubeconfig \
+            --name "$EKS_CLUSTER" \
+            --region "$AWS_REGION"
+
+          kubectl cluster-info
+
+      - name: Verify verifier permissions
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          require_permission() {
+            local verb="$1"
+            local resource="$2"
+            local name="$3"
+            local namespace="$4"
+            local result
+
+            if ! result="$(kubectl auth can-i "$verb" "$resource" \
+              --resource-name="$name" -n "$namespace" 2>&1)"; then
+              echo "ERROR: Could not verify permission: $verb $resource/$name in $namespace"
+              echo "$result"
+              return 1
+            fi
+
+            if [[ "$result" != "yes" ]]; then
+              echo "ERROR: Required permission denied: $verb $resource/$name in $namespace"
+              return 1
+            fi
+
+            echo "PASS: Can $verb $resource/$name in $namespace"
+          }
+
+          require_no_permission() {
+            local verb="$1"
+            local resource="$2"
+            local name="$3"
+            local namespace="$4"
+            local result
+
+            if ! result="$(kubectl auth can-i "$verb" "$resource" \
+              --resource-name="$name" -n "$namespace" 2>&1)"; then
+              echo "ERROR: Could not verify restricted permission: $verb $resource/$name in $namespace"
+              echo "$result"
+              return 1
+            fi
+
+            if [[ "$result" != "no" ]]; then
+              echo "ERROR: Unexpectedly allowed: $verb $resource/$name in $namespace"
+              return 1
+            fi
+
+            echo "PASS: Cannot $verb $resource/$name in $namespace"
+          }
+
+          require_permission get applications.argoproj.io devboard-raw argocd
+          require_permission get deployments.apps devboard-frontend-deployment "$NAMESPACE"
+          require_permission get deployments.apps devboard-backend-deployment "$NAMESPACE"
+          require_permission get deployments.apps devboard-ai-service-deployment "$NAMESPACE"
+
+          require_no_permission patch deployments.apps devboard-frontend-deployment "$NAMESPACE"
+          require_no_permission patch deployments.apps devboard-backend-deployment "$NAMESPACE"
+          require_no_permission patch deployments.apps devboard-ai-service-deployment "$NAMESPACE"
+
+      - name: Wait for Argo CD synchronization
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          expected_revision="$(
+            git ls-remote \
+              https://github.com/tnxq1209/devboard.git \
+              refs/heads/master | awk '{print $1}'
+          )"
+
+          if [[ -z "$expected_revision" ]]; then
+            echo "ERROR: Could not determine the latest master revision."
+            exit 1
+          fi
+
+          echo "Expected Git revision: $expected_revision"
+
+          for attempt in $(seq 1 30); do
+            if ! app_state="$(
+              kubectl get application "$ARGOCD_APP" -n argocd \
+                -o jsonpath='{.status.sync.status}{" "}{.status.health.status}{" "}{.status.sync.revision}' \
+                2>&1
+            )"; then
+              echo "ERROR: Could not read Argo CD Application status:"
+              echo "$app_state"
+              exit 1
+            fi
+
+            read -r sync_status health_status synced_revision <<< "$app_state"
+
+            echo "Attempt $attempt/30: sync=$sync_status health=$health_status revision=$synced_revision"
+
+            if [[ "$sync_status" == "Synced" &&
+                  "$health_status" == "Healthy" &&
+                  "$synced_revision" == "$expected_revision" ]]; then
+              echo "Argo CD synchronized the expected revision successfully."
+              exit 0
+            fi
+
+            sleep 30
+          done
+
+          echo "ERROR: Argo CD did not synchronize the expected revision and become Healthy within 15 minutes."
+          exit 1
+
+      - name: Verify Deployment readiness
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          deployments=(
+            devboard-frontend-deployment
+            devboard-backend-deployment
+            devboard-ai-service-deployment
+          )
+
+          for deployment in "${deployments[@]}"; do
+            echo "Checking $deployment..."
+            ready=false
+
+            for attempt in $(seq 1 30); do
+              deployment_json="$(
+                kubectl get deployment "$deployment" \
+                  -n "$NAMESPACE" -o json
+              )"
+
+              if printf '%s' "$deployment_json" | python3 -c '
+          import json, sys
+
+          d = json.load(sys.stdin)
+          metadata = d.get("metadata", {})
+          spec = d.get("spec", {})
+          status = d.get("status", {})
+
+          desired = spec.get("replicas", 1)
+          observed = status.get("observedGeneration", 0)
+          generation = metadata.get("generation", 0)
+          available = status.get("availableReplicas", 0)
+          replicas_ready = status.get("readyReplicas", 0)
+
+          print(
+              f"desired={desired}, ready={replicas_ready}, "
+              f"available={available}, observedGeneration={observed}"
+          )
+
+          sys.exit(0 if (
+              observed >= generation
+              and replicas_ready == desired
+              and available == desired
+          ) else 1)
+          '; then
+                ready=true
+                break
+              fi
+
+              echo "Waiting for $deployment (attempt $attempt/30)..."
+              sleep 10
+            done
+
+            if [[ "$ready" != true ]]; then
+              echo "ERROR: $deployment did not become fully ready within 5 minutes."
+              kubectl get deployment "$deployment" -n "$NAMESPACE" -o wide
+              exit 1
+            fi
+
+            echo "PASS: $deployment is fully ready."
+          done
+
+          echo "All post-deployment checks passed."
