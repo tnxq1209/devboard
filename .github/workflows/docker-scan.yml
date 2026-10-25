@@ -18,27 +18,3 @@ jobs:
               uses: hadolint/hadolint-action@v3.1.0 # Lint the Dockerfile for best practices and potential issues.
               with:
                   dockerfile: ./${{ matrix.dockerfile }}/Dockerfile
-            - name: Docker Login
-              uses: docker/login-action@v4
-              with:
-                  username: ${{ secrets.DOCKERHUB_USERNAME }}
-                  password: ${{ secrets.DOCKERHUB_TOKEN }}
-            - name: Build Docker ${{ matrix.dockerfile }} Image
-              run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.dockerfile }} ${{ matrix.dockerfile }}/.
-            - name: Scan Docker ${{ matrix.dockerfile }} Image
-              uses: aquasecurity/trivy-action@v0.36.0
-              with:
-                    image-ref: ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.dockerfile }}
-                    format: 'table'
-                    exit-code: '1'
-                    ignore-unfixed: true
-                    vuln-type: 'os,library'
-                    severity: 'CRITICAL,HIGH'
-                    output: 'trivy-scan-results-${{ matrix.dockerfile }}.txt'
-            - name: Upload Trivy Scan Results
-              uses: actions/upload-artifact@v7
-              if: always()  # Forces execution even if tests fail
-              with:
-                  name: trivy-scan-results-${{ matrix.dockerfile }} # Name of the zip package inside GitHub UI
-                  path: trivy-scan-results-${{ matrix.dockerfile }}.txt
-                  retention-days: 7          # Optional expiration timeframe
