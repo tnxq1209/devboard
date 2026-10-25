@@ -8,6 +8,9 @@ jobs:
   update-manifests:
     name: Update Kubernetes Image Tags
     runs-on: ubuntu-latest
+    concurrency:
+      group: devboard-manifest-update-${{ github.ref }}
+      cancel-in-progress: false
     permissions:
       contents: write
     env:
