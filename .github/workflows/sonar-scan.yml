@@ -22,12 +22,3 @@ jobs:
                 args: >
                   -Dsonar.organization=${{ vars.SONAR_ORGANIZATION }}
                   -Dsonar.projectKey=${{ vars.SONAR_PROJECT_KEY }}
-
-            - name: Upload SonarQube scan log
-              if: always()
-              uses: actions/upload-artifact@v7
-              with:
-                name: sonar-scan-log
-                path: .sonar/
-                if-no-files-found: warn
-                retention-days: 5
