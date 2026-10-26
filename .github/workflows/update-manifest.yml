@@ -22,38 +22,63 @@ jobs:
         with:
           ref: master
 
-      - name: Update application image tags
+      - name: Download image digests
+        uses: actions/download-artifact@v7
+        with:
+          pattern: image-digest-*
+          path: image-digests
+          merge-multiple: true
+
+      - name: Update application image digests
         shell: bash
         run: |
           set -euo pipefail
 
           python3 - <<'PY'
-          import os
           import re
           from pathlib import Path
 
-          image_tag = os.environ["IMAGE_TAG"]
-
           images = {
-              "k8s/on-cluster/ai-service-deployment.yml": "tnxq1209/devboard-ai-service",
-              "k8s/on-cluster/backend-deployment.yml": "tnxq1209/devboard-backend",
-              "k8s/on-cluster/frontend-deployment.yml": "tnxq1209/devboard-frontend",
+              "k8s/on-cluster/ai-service-deployment.yml": (
+                  "tnxq1209/devboard-ai-service",
+                  "image-digests/digest-ai-service.txt",
+              ),
+              "k8s/on-cluster/backend-deployment.yml": (
+                  "tnxq1209/devboard-backend",
+                  "image-digests/digest-backend.txt",
+              ),
+              "k8s/on-cluster/frontend-deployment.yml": (
+                  "tnxq1209/devboard-frontend",
+                  "image-digests/digest-frontend.txt",
+              ),
           }
 
-          for filename, image in images.items():
+          for filename, (image, digest_file) in images.items():
+              digest = Path(digest_file).read_text().strip()
+
+              if not re.fullmatch(r"sha256:[a-f0-9]{64}", digest):
+                  raise SystemExit(
+                      f"ERROR: Invalid digest in {digest_file}: {digest!r}"
+                  )
+
               path = Path(filename)
               content = path.read_text()
 
-              pattern = re.escape(image) + r":(?:latest|sha-[A-Za-z0-9]+)"
-              updated, count = re.subn(pattern, f"{image}:{image_tag}", content)
+              pattern = re.escape(image) + r"(?::[A-Za-z0-9_.-]+|@sha256:[a-f0-9]{64})"
+              updated, count = re.subn(
+                  pattern,
+                  f"{image}@{digest}",
+                  content,
+              )
 
-              if count == 0:
+              if count != 1:
                   raise SystemExit(
-                      f"ERROR: No matching image tag found for {image} in {filename}"
+                      f"ERROR: Expected exactly one image reference for "
+                      f"{image} in {filename}, found {count}"
                   )
 
               path.write_text(updated)
-              print(f"Updated {image} to {image_tag} in {filename}")
+              print(f"Updated {filename} to {image}@{digest}")
           PY
 
       - name: Check whether this run is stale
