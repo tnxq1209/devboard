@@ -28,6 +28,6 @@ jobs:
               uses: actions/upload-artifact@v7
               with:
                 name: sonar-scan-log
-                path: .scannerwork/
+                path: .sonar/
                 if-no-files-found: warn
                 retention-days: 5
