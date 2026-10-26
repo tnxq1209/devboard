@@ -15,7 +15,7 @@ jobs:
               with:
                 fetch-depth: 0
             - name: Sonarqube Cloud Scan
-              uses: SonarSource/sonarqube-scan-action@v5 # Ex: v4.1.0 or sha1, See the latest version at https://github.com/marketplace/actions/official-sonarqube-scan
+              uses: SonarSource/sonarqube-scan-action@v8 # Ex: v4.1.0 or sha1, See the latest version at https://github.com/marketplace/actions/official-sonarqube-scan
               env:
                 SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
               with:
@@ -25,7 +25,7 @@ jobs:
 
             - name: Upload SonarQube scan log
               if: always()
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                 name: sonar-scan-log
                 path: .scannerwork/
