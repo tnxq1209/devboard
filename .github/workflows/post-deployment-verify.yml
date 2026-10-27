@@ -251,3 +251,52 @@ jobs:
           assert data.get("service") == "ai-service", f"Unexpected service: {data}"
           print("AI service smoke test passed:", data)
           '
+      - name: Download expected image digests
+        uses: actions/download-artifact@v5
+        with:
+          pattern: image-digest-*
+          path: expected-digests
+          merge-multiple: false
+
+      - name: Verify deployed image digests
+        run: |
+          set -euo pipefail
+
+          declare -A deployments=(
+            [frontend]=devboard-frontend-deployment
+            [backend]=devboard-backend-deployment
+            [ai-service]=devboard-ai-service-deployment
+          )
+
+          for service in frontend backend ai-service; do
+            echo "Verifying deployed image digest for ${service}..."
+
+            digest_file="expected-digests/image-digest-${service}/digest-${service}.txt"
+
+            if [[ ! -f "$digest_file" ]]; then
+              echo "::error::Missing digest artifact: $digest_file"
+              exit 1
+            fi
+
+            expected_digest="$(tr -d '\r\n' < "$digest_file")"
+
+            if [[ ! "$expected_digest" =~ ^sha256:[a-f0-9]{64}$ ]]; then
+              echo "::error::Invalid digest for ${service}: $expected_digest"
+              exit 1
+            fi
+
+            deployment="${deployments[$service]}"
+
+            deployed_image="$(kubectl get deployment "$deployment" \
+              -n "$NAMESPACE" \
+              -o jsonpath='{.spec.template.spec.containers[0].image}')"
+
+            if [[ "$deployed_image" != *"@${expected_digest}" ]]; then
+              echo "::error::Digest mismatch for ${service}"
+              echo "Expected: $expected_digest"
+              echo "Deployed: $deployed_image"
+              exit 1
+            fi
+
+            echo "PASS: ${service} uses the expected image digest."
+          done

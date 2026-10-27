@@ -59,6 +59,7 @@ jobs:
         needs: [build-and-push]
         uses: ./.github/workflows/update-manifest.yml
         secrets: inherit
+        
     post-deployment-verify:
         needs: [update-manifests]
         uses: ./.github/workflows/post-deployment-verify.yml
