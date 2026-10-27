@@ -1,5 +1,5 @@
-# Build and Push
-name: Build and Push
+# Scan, Build and Push
+name: Scan Build Push
 
 on:
     workflow_call:
@@ -14,10 +14,14 @@ jobs:
             - name: Code Checkout
               uses: actions/checkout@v7
 
+            - name: Docker lint
+              uses: hadolint/hadolint-action@v3.1.0 # Lint the Dockerfile for best practices and potential issues.
+              with:
+                  dockerfile: ./${{ matrix.folder }}/Dockerfile
             - name: Set up Docker Buildx
               uses: docker/setup-buildx-action@v4
 
-            - name: Docker Build and Push
+            - name: Docker Build
               uses: docker/build-push-action@v7
               with:
                 context: ./${{ matrix.folder }}
@@ -25,7 +29,6 @@ jobs:
                 push: false
                 tags: |
                   ${{ secrets.DOCKERHUB_USERNAME }}/devboard-${{ matrix.folder }}:sha-${{ github.sha }}
-                  ${{ secrets.DOCKERHUB_USERNAME }}/devboard-${{ matrix.folder }}:latest
                 cache-from: type=gha
                 cache-to: type=gha,mode=max
             - name: Scan Docker image
@@ -88,12 +91,3 @@ jobs:
                 name: image-digest-${{ matrix.folder }}
                 path: digest-${{ matrix.folder }}.txt
                 retention-days: 1
-            - name: Update latest tag
-              if: github.ref == 'refs/heads/master'
-              env:
-                IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/devboard-${{ matrix.folder }}
-                IMAGE_TAG: sha-${{ github.sha }}
-              run: |
-                set -euo pipefail
-                docker tag "${IMAGE}:${IMAGE_TAG}" "${IMAGE}:latest"
-                docker push "${IMAGE}:latest"

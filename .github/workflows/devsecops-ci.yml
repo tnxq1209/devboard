@@ -47,18 +47,8 @@ jobs:
         uses: ./.github/workflows/sonar-scan.yml
         secrets: inherit
 
-    docker-scan:
-        needs:
-            - code-quality
-            - dependency-scan
-            - code-test
-            - sonar-scan
-        uses: ./.github/workflows/docker-scan.yml
-        secrets: inherit # This line is used to inherit the secrets from the parent workflow. It allows the child workflow to access the secrets defined in the parent workflow, which can be useful for passing sensitive information such as API keys or tokens to the child workflow without exposing them in the code.
-
     build-and-push:
-        needs: 
-            - docker-scan
+        needs: [code-quality,dependency-scan,code-test,sonar-scan]
         uses: ./.github/workflows/build-push.yml
         secrets: inherit
     update-manifests:
