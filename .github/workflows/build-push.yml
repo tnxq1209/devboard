@@ -124,6 +124,19 @@ jobs:
 
                 cosign sign --yes "${IMAGE}@${digest}"
 
+            - name: Verify signed image
+              env:
+                IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/devboard-${{ matrix.folder }}
+              run: |
+                set -euo pipefail
+
+                digest="$(cat "digest-${{ matrix.folder }}.txt")"
+
+                cosign verify \
+                  --certificate-identity "https://github.com/${GITHUB_REPOSITORY}/.github/workflows/build-push.yml@refs/heads/master" \
+                  --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+                  "${IMAGE}@${digest}"
+
             - name: Upload image digest
               uses: actions/upload-artifact@v7
               with:
