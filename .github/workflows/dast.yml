@@ -43,6 +43,6 @@ jobs:
         uses: zaproxy/action-baseline@v0.14.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          target: ${{ inputs.target }}
+          target: http://${{ inputs.target }}
           fail_action: false
           allow_issue_writing: false
