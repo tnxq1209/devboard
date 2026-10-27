@@ -19,6 +19,17 @@ module "eks" {
   subnet_ids = data.terraform_remote_state.network.outputs.private_subnet_ids
 
   control_plane_subnet_ids = data.terraform_remote_state.network.outputs.intra_subnet_ids
+  
+  node_security_group_additional_rules = {
+    ingress_self_http = {
+      description = "Allow HTTP traffic between EKS nodes"
+      protocol    = "tcp"
+      from_port   = 80
+      to_port     = 80
+      type        = "ingress"
+      self        = true
+    }
+  }
 
   endpoint_public_access  = true
   endpoint_private_access = true

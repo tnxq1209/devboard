@@ -1,27 +1,48 @@
-# Dast scan
+# DAST Scan
 name: OWASP ZAP
 
-on: 
-    workflow_dispatch:
-        inputs:
-          NLB:
-            description: 'The NLB endpoint to scan'
-            required: true
-            default: 'nlb-3-15-123-456.us-east-2.elb.amazonaws.com'
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Application URL to scan"
+        required: true
+        default: 'a8acc8f7e636d45549e95f7def6246e3-1833525468.ap-south-1.elb.amazonaws.com'
+        type: string
 
 jobs:
-    Scan:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Code Checkout
-              uses: actions/checkout@v7
-            - name: Wait for the services to be healthy
-              run: |
-                timeout 60s sh -c 'until curl -s http://${{ github.event.inputs.NLB }}:8080 > /dev/null; do sleep 2; done'
-            - name: OWASP ZAP baseline scan
-              uses: zaproxy/action-baseline@v0.14.0
-              with:
-                token: ${{ secrets.GITHUB_TOKEN }}
-                target: 'http://${{ github.event.inputs.NLB }}:8080'
-                fail_action: false
-                allow_issue_writing: false
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    permissions:
+      contents: read
+      issues: write
+
+    steps:
+      - name: Wait for the application
+        env:
+          TARGET: ${{ inputs.target }}
+        run: |
+          set -euo pipefail
+
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent --show-error \
+              --max-time 5 "$TARGET" -o /dev/null; then
+              echo "Application is reachable."
+              exit 0
+            fi
+
+            sleep 2
+          done
+
+          echo "::error::Application did not become reachable."
+          exit 1
+
+      - name: OWASP ZAP baseline scan
+        uses: zaproxy/action-baseline@v0.14.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          target: ${{ inputs.target }}
+          fail_action: false
+          allow_issue_writing: false
