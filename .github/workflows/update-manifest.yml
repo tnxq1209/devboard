@@ -39,7 +39,7 @@ jobs:
         with:
           name: image-digest-ai-service
           path: image-digests/ai-service
-          
+
       - name: Install Cosign
         uses: sigstore/cosign-installer@v4.1.0
 
@@ -64,13 +64,6 @@ jobs:
               "${IMAGE_PREFIX}-${service}@${digest}"
           done
 
-      - name: Download image digests
-        uses: actions/download-artifact@v7
-        with:
-          pattern: image-digest-*
-          path: image-digests
-          merge-multiple: true
-
       - name: Update application image digests
         shell: bash
         run: |
@@ -83,15 +76,15 @@ jobs:
           images = {
               "k8s/on-cluster/ai-service-deployment.yml": (
                   "tnxq1209/devboard-ai-service",
-                  "image-digests/digest-ai-service.txt",
+                  "image-digests/ai-service/digest-ai-service.txt",
               ),
               "k8s/on-cluster/backend-deployment.yml": (
                   "tnxq1209/devboard-backend",
-                  "image-digests/digest-backend.txt",
+                  "image-digests/backend/digest-backend.txt",
               ),
               "k8s/on-cluster/frontend-deployment.yml": (
                   "tnxq1209/devboard-frontend",
-                  "image-digests/digest-frontend.txt",
+                  "image-digests/frontend/digest-frontend.txt",
               ),
           }
 
