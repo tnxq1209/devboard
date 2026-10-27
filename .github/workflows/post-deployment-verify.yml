@@ -219,3 +219,35 @@ jobs:
           done
 
           echo "All post-deployment checks passed."
+
+      - name: Run application smoke tests
+        env:
+          GATEWAY_URL: ${{ vars.DEVBOARD_GATEWAY_URL }}
+        run: |
+          set -euo pipefail
+
+          : "${GATEWAY_URL:?Missing DEVBOARD_GATEWAY_URL repository variable}"
+
+          echo "Testing frontend..."
+          curl --fail --silent --show-error \
+            --retry 5 --retry-all-errors --retry-delay 2 \
+            --max-time 15 \
+            "$GATEWAY_URL/" \
+            -o /tmp/devboard-frontend.html
+
+          grep -q '<div id="root"></div>' /tmp/devboard-frontend.html
+          echo "Frontend smoke test passed."
+
+          echo "Testing AI service health..."
+          AI_HEALTH="$(curl --fail --silent --show-error \
+            --retry 5 --retry-all-errors --retry-delay 2 \
+            --max-time 15 \
+            "$GATEWAY_URL/api/ai/health")"
+
+          printf '%s' "$AI_HEALTH" | python3 -c '
+          import json, sys
+          data = json.load(sys.stdin)
+          assert data.get("status") == "ok", f"Unexpected health response: {data}"
+          assert data.get("service") == "ai-service", f"Unexpected service: {data}"
+          print("AI service smoke test passed:", data)
+          '
