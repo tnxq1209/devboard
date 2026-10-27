@@ -22,6 +22,48 @@ jobs:
         with:
           ref: master
 
+      - name: Download frontend image digest
+        uses: actions/download-artifact@v7
+        with:
+          name: image-digest-frontend
+          path: image-digests/frontend
+
+      - name: Download backend image digest
+        uses: actions/download-artifact@v7
+        with:
+          name: image-digest-backend
+          path: image-digests/backend
+
+      - name: Download AI service image digest
+        uses: actions/download-artifact@v7
+        with:
+          name: image-digest-ai-service
+          path: image-digests/ai-service
+          
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v4.1.0
+
+      - name: Verify signed images
+        env:
+          IMAGE_PREFIX: ${{ secrets.DOCKERHUB_USERNAME }}/devboard
+          EXPECTED_WORKFLOW: https://github.com/tnxq1209/devboard/.github/workflows/build-push.yml@refs/heads/master
+        run: |
+          set -euo pipefail
+
+          for service in frontend backend ai-service; do
+            digest="$(cat "image-digests/${service}/digest-${service}.txt")"
+
+            if [[ ! "$digest" =~ ^sha256:[a-f0-9]{64}$ ]]; then
+              echo "::error::Invalid digest for ${service}: ${digest}"
+              exit 1
+            fi
+
+            cosign verify \
+              --certificate-identity "${EXPECTED_WORKFLOW}" \
+              --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+              "${IMAGE_PREFIX}-${service}@${digest}"
+          done
+
       - name: Download image digests
         uses: actions/download-artifact@v7
         with:
