@@ -31,7 +31,7 @@ jobs:
                   ${{ secrets.DOCKERHUB_USERNAME }}/devboard-${{ matrix.folder }}:sha-${{ github.sha }}
                 cache-from: type=gha
                 cache-to: type=gha,mode=max
-            - name: Scan Docker image
+            - name: Trivy scan for Docker images
               uses: aquasecurity/trivy-action@v0.36.0
               with:
                 image-ref: ${{ secrets.DOCKERHUB_USERNAME }}/devboard-${{ matrix.folder }}:sha-${{ github.sha }}
@@ -50,6 +50,24 @@ jobs:
                 path: trivy-scan-results-${{ matrix.folder }}.txt
                 if-no-files-found: ignore
                 retention-days: 7
+            
+            - name: Generate SBOM
+              id : generate-sbom
+              uses: aquasecurity/trivy-action@v0.36.0
+              with:
+                image-ref: ${{ secrets.DOCKERHUB_USERNAME }}/devboard-${{ matrix.folder }}:sha-${{ github.sha }}
+                format: cyclonedx
+                output: sbom-${{ matrix.folder }}.json
+                scan-type: image
+
+            - name: Upload SBOM
+              if: success() || steps.generate-sbom.outcome == 'success'
+              uses: actions/upload-artifact@v7
+              with:
+                name: sbom-${{ matrix.folder }}
+                path: sbom-${{ matrix.folder }}.json
+                if-no-files-found: error
+                retention-days: 30
 
             - name: Docker Hub login
               uses: docker/login-action@v4
