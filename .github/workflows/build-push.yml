@@ -7,6 +7,9 @@ on:
 jobs:
     build-and-push:
         runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            id-token: write
         strategy:
             matrix:
                 folder: [frontend, backend, ai-service]
@@ -102,6 +105,24 @@ jobs:
 
                 printf '%s\n' "$digest" > "digest-${{ matrix.folder }}.txt"
                 echo "Pushed image digest: $digest"
+
+            - name: Install Cosign
+              uses: sigstore/cosign-installer@v4.1.0
+
+            - name: Sign container image
+              env:
+                IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/devboard-${{ matrix.folder }}
+              run: |
+                set -euo pipefail
+
+                digest="$(cat "digest-${{ matrix.folder }}.txt")"
+
+                if [[ ! "$digest" =~ ^sha256:[a-f0-9]{64}$ ]]; then
+                  echo "::error::Invalid image digest: $digest"
+                  exit 1
+                fi
+
+                cosign sign --yes "${IMAGE}@${digest}"
 
             - name: Upload image digest
               uses: actions/upload-artifact@v7

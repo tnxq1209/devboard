@@ -51,6 +51,10 @@ jobs:
         needs: [code-quality,dependency-scan,code-test,sonar-scan]
         uses: ./.github/workflows/build-push.yml
         secrets: inherit
+        permissions:
+            contents: read
+            id-token: write
+
     update-manifests:
         needs: [build-and-push]
         uses: ./.github/workflows/update-manifest.yml
