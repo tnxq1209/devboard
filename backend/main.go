@@ -17,9 +17,31 @@ import (
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
+
+	_ "github.com/prometheus/client_golang/prometheus"
+	_ "github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 var db *sql.DB
+
+var (
+	httpRequestsTotal = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "devboard_http_requests_total",
+			Help: "Total number of HTTP requests handled by the DevBoard backend.",
+		},
+		[]string{"method", "route", "status"},
+	)
+
+	httpRequestDuration = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "devboard_http_request_duration_seconds",
+			Help:    "Duration of HTTP requests handled by the DevBoard backend.",
+			Buckets: prometheus.DefBuckets,
+		},
+		[]string{"method", "route"},
+	)
+)
 
 // Task mirrors the JSON shape the React UI expects.
 type Task struct {
@@ -66,7 +88,12 @@ func main() {
 	}
 	log.Println("[backend] connected to postgres")
 
+	prometheus.MustRegister(httpRequestsTotal, httpRequestDuration)
+
 	r := gin.Default()
+	r.Use(prometheusMiddleware())
+
+	r.GET("/metrics", gin.WrapH(promhttp.Handler()))
 
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok", "service": "backend"})
@@ -83,6 +110,38 @@ func main() {
 	log.Printf("[backend] listening on :%s", port)
 	if err := r.Run(":" + port); err != nil {
 		log.Fatalf("[backend] FATAL: %v", err)
+	}
+}
+
+func prometheusMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		start := time.Now()
+
+		c.Next()
+
+		// Avoid counting Prometheus scrape requests.
+		if c.Request.URL.Path == "/metrics" {
+			return
+		}
+
+		route := c.FullPath()
+		if route == "" {
+			route = "unmatched"
+		}
+
+		method := c.Request.Method
+		status := strconv.Itoa(c.Writer.Status())
+
+		httpRequestsTotal.WithLabelValues(
+			method,
+			route,
+			status,
+		).Inc()
+
+		httpRequestDuration.WithLabelValues(
+			method,
+			route,
+		).Observe(time.Since(start).Seconds())
 	}
 }
 
