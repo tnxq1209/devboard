@@ -83,6 +83,18 @@ module "eks" {
       max_size     = var.node_max_size
       desired_size = var.node_desired_size
 
+      block_device_mappings = {
+        xvda = {
+          device_name = "/dev/xvda"
+          ebs = {
+            volume_size           = var.node_disk_size
+            volume_type           = "gp3"
+            encrypted             = true
+            delete_on_termination = true
+          }
+        }
+      }
+
       subnet_ids = data.terraform_remote_state.network.outputs.private_subnet_ids
 
       labels = {

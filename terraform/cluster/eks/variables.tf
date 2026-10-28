@@ -39,3 +39,9 @@ variable "node_max_size" {
   type        = number
   default     = 3
 }
+
+variable "node_disk_size" {
+  description = "Root volume per node, GiB. 30 rather than 20: Ollama's ~1.3 GB model plus three app images plus the ArgoCD/ESO/Envoy control planes get close to disk-pressure eviction on 20."
+  type        = number
+  default     = 30
+}

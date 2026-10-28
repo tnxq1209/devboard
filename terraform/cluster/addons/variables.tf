@@ -22,3 +22,9 @@ variable "envoy_gateway_chart_version" {
   default     = "v1.9.2"
 }
 
+variable "kube_prom_stack_version" {
+  description = "Kube prometheus stack version"
+  type        = string
+  default     = "92.14.0"
+}
+
