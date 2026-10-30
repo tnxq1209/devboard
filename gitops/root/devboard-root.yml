@@ -11,7 +11,7 @@ spec:
     path: gitops/argocd   # Path where child app manifests are stored
   destination:
     server: https://kubernetes.default.svc  # Deploying inside the same cluster
-    namespace: argocd             # Applications (CRDs) must live in argocd namespace
+    namespace: devboard             # Applications (CRDs) must live in argocd namespace
   syncPolicy:
     automated:
       prune: true                 # Prune removed child apps
