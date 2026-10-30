@@ -8,19 +8,17 @@ spec:
   generators:
     - list:
         elements:
-          - app: GatewayClass-controller
-            path: gitops/gateway
           - app: devboard 
             path: gitops/devboard 
           - app: ollama
             path: gitops/ollama
           - app: RBAC-liveness-check
-            path: gitops/app-verifier-rbac
+            path: gitops/verifier_rbac
   # Template that will be used to generate individual Application CRs
   template:
     metadata:
       # name template uses the element key 'app'
-      name: '{{app}}-list'
+      name: '{{app}}'
     spec:
       project: default
       source:
