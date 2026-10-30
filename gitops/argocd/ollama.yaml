@@ -10,7 +10,7 @@ spec:
 
   source:
     repoURL: https://github.com/tnxq1209/devboard.git
-    targetRevision: gitops
+    targetRevision: master
     path: gitops/ollama
 
   destination:
