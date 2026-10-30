@@ -9,7 +9,7 @@ spec:
   project: default
 
   source:
-    repoURL: https://github.com/LondheShubham153/devboard.git
+    repoURL: https://github.com/tnxq1209/devboard.git
     targetRevision: gitops
     path: gitops/ollama
 
