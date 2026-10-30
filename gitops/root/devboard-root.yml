@@ -1,18 +1,36 @@
 apiVersion: argoproj.io/v1alpha1
-kind: Application
+kind: ApplicationSet
 metadata:
-  name: devboard-root                # Root application name
-  namespace: argocd             # Always in ArgoCD namespace
+  name: devboard-list
+  namespace: argocd
 spec:
-  project: default              # Can also assign to a Project if needed
-  source:
-    repoURL: https://github.com/tnxq1209/devboard.git   # Repo containing child apps
-    targetRevision: master        # Git branch to track
-    path: gitops/argocd   # Path where child app manifests are stored
-  destination:
-    server: https://kubernetes.default.svc  # Deploying inside the same cluster
-    namespace: devboard             # Applications (CRDs) must live in argocd namespace
-  syncPolicy:
-    automated:
-      prune: true                 # Prune removed child apps
-      selfHeal: true              # Auto-fix drift
+  # The list generator lets you enumerate a static set of elements (apps).
+  generators:
+    - list:
+        elements:
+          - app: GatewayClass-controller
+            path: gitops/gateway
+          - app: devboard 
+            path: gitops/devboard 
+          - app: ollama
+            path: gitops/ollama
+          - app: RBAC-liveness-check
+            path: gitops/app-verifier-rbac
+  # Template that will be used to generate individual Application CRs
+  template:
+    metadata:
+      # name template uses the element key 'app'
+      name: '{{app}}-list'
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/<your-username>/argocd-demos.git
+        targetRevision: main
+        path: '{{path}}'                # resolved from element
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: devboard
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
