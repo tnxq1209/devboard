@@ -1,13 +1,13 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: root-app                # Root application name
+  name: devboard-root                # Root application name
   namespace: argocd             # Always in ArgoCD namespace
 spec:
   project: default              # Can also assign to a Project if needed
   source:
     repoURL: https://github.com/tnxq1209/devboard.git   # Repo containing child apps
-    targetRevision: main        # Git branch to track
+    targetRevision: master        # Git branch to track
     path: gitops/apps   # Path where child app manifests are stored
   destination:
     server: https://kubernetes.default.svc  # Deploying inside the same cluster
