@@ -24,8 +24,8 @@ spec:
     spec:
       project: default
       source:
-        repoURL: https://github.com/<your-username>/argocd-demos.git
-        targetRevision: main
+        repoURL: https://github.com/tnxq1209/argocd-demos.git
+        targetRevision: master
         path: '{{path}}'                # resolved from element
       destination:
         server: https://kubernetes.default.svc
