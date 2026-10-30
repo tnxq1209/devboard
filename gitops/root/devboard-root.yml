@@ -12,7 +12,7 @@ spec:
             path: gitops/devboard 
           - app: ollama
             path: gitops/ollama
-          - app: RBAC-liveness-check
+          - app: liveness-check
             path: gitops/verifier_rbac
   # Template that will be used to generate individual Application CRs
   template:
