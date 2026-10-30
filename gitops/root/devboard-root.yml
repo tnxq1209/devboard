@@ -24,7 +24,7 @@ spec:
     spec:
       project: default
       source:
-        repoURL: https://github.com/tnxq1209/argocd-demos.git
+        repoURL: https://github.com/tnxq1209/devboard.git
         targetRevision: master
         path: '{{path}}'                # resolved from element
       destination:
