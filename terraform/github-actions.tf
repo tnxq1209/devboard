@@ -24,7 +24,7 @@ resource "aws_iam_role" "github_actions" {
           }
 
           StringLike = {
-            "token.actions.githubusercontent.com:sub" = "repo:YOUR_GITHUB_USERNAME/devboard:ref:refs/heads/master"
+            "token.actions.githubusercontent.com:sub" = "repo:tnxq1209/devboard:ref:refs/heads/master"
           }
         }
       }
