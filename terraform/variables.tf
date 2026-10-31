@@ -7,7 +7,7 @@ variable "region" {
 variable "cluster_name" {
   description = "Name of the EKS cluster."
   type        = string
-  default     = "devboard-eks"
+  default     = "test-eks"
 }
 
 variable "kubernetes_version" {
@@ -25,7 +25,7 @@ variable "node_instance_types" {
 variable "node_desired_size" {
   description = "Desired number of EKS worker nodes."
   type        = number
-  default     = 2
+  default     = 1
 }
 
 variable "node_min_size" {
@@ -45,3 +45,28 @@ variable "node_disk_size" {
   type        = number
   default     = 30
 }
+
+variable "vpc_cidr" {
+  description = "CIDR block for the DevBoard VPC."
+  type        = string
+  default     = "10.0.0.0/16"
+}
+
+variable "argocd_chart_version" {
+  description = "Argo CD Helm chart version"
+  type        = string
+  default     = "10.3.0"
+}
+
+variable "envoy_gateway_chart_version" {
+  description = "Envoy Gateway Helm chart version"
+  type        = string
+  default     = "v1.9.2"
+}
+
+variable "kube_prom_stack_version" {
+  description = "Kube prometheus stack version"
+  type        = string
+  default     = "92.14.0"
+}
+

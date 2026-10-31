@@ -14,12 +14,9 @@ terraform {
       source  = "hashicorp/kubernetes"
       version = "~> 2.38"
     }
-  }
-
-  backend "s3" {
-    bucket       = "devboard-tfstate-565905128295-ap-south-1"
-    key          = "dev/eks.tfstate"
-    region       = "ap-south-1"
-    use_lockfile = true
+    helm = {
+      source  = "hashicorp/helm"
+      version = "~> 3.0"
+    }
   }
 }

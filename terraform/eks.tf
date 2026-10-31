@@ -1,3 +1,6 @@
+data "aws_partition" "current" {}
+
+data "aws_caller_identity" "current" {}
 
 data "http" "my_public_ip" {
   url = "https://api.ipify.org"
@@ -14,12 +17,12 @@ module "eks" {
   name               = var.cluster_name
   kubernetes_version = var.kubernetes_version
 
-  vpc_id = data.terraform_remote_state.network.outputs.vpc_id
+  vpc_id = module.vpc.vpc_id
 
-  subnet_ids = data.terraform_remote_state.network.outputs.private_subnet_ids
+  subnet_ids = module.vpc.private_subnets
 
-  control_plane_subnet_ids = data.terraform_remote_state.network.outputs.intra_subnet_ids
-  
+  control_plane_subnet_ids = module.vpc.intra_subnets
+
   node_security_group_additional_rules = {
     ingress_self_http = {
       description = "Allow HTTP traffic between EKS nodes"
@@ -95,7 +98,7 @@ module "eks" {
         }
       }
 
-      subnet_ids = data.terraform_remote_state.network.outputs.private_subnet_ids
+      subnet_ids = module.vpc.private_subnets
 
       labels = {
         Environment = "dev"
