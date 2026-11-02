@@ -1,3 +1,4 @@
+# 1. Kube Prometheus Stack Helm Deployment
 resource "helm_release" "kube_prometheus_stack" {
   name             = "kube-prometheus-stack"
   repository       = "oci://ghcr.io/prometheus-community/charts"
@@ -62,6 +63,7 @@ resource "helm_release" "kube_prometheus_stack" {
 
   timeout = 900
   wait    = true
+  depends_on = [module.eks]
 }
 
 resource "helm_release" "envoy_gateway" {
@@ -90,8 +92,10 @@ resource "helm_release" "envoy_gateway" {
       }
     })
   ]
+  depends_on = [ module.eks ]
 }
 
+# 2. Argo CD Helm Deployment
 resource "helm_release" "argocd" {
   name             = "argocd"
   repository       = "oci://ghcr.io/argoproj/argo-helm"
@@ -114,33 +118,51 @@ resource "helm_release" "argocd" {
 
   timeout = 900
   wait    = true
+
+  depends_on = [module.eks]
 }
 
-# Port-forward for Argo CD
-resource "null_resource" "argocd_port_forward" {
-  triggers = {
-    helm_id = helm_release.argocd.id
-  }
+# 3. Metrics Server Helm Deployment
+resource "helm_release" "metrics_server" {
+  name       = "metrics-server"
+  repository = "https://kubernetes-sigs.github.io/metrics-server/"
+  chart      = "metrics-server"
+  namespace  = "kube-system"
+  #version    = "3.12.1" # Target the exact stable version you want
 
-  provisioner "local-exec" {
-    # Launches kubectl port-forward in the background
-    # Works on Linux, macOS, and Git Bash / WSL on Windows
-    command = "kubectl port-forward svc/argocd-server -n argocd 8080:443 > /dev/null 2>&1 &"
-  }
-
-  depends_on = [helm_release.argocd]
+  # Optional production tuning
+  values = [
+    <<-EOT
+    args:
+      - --kubelet-insecure-tls
+    resources:
+      requests:
+        cpu: 100m
+        memory: 200Mi
+    EOT
+  ]
+  timeout            = 600 # 10 minutes for deployment wait time
+  depends_on         = [module.eks]
 }
 
-# Port-forward for Grafana (kube-prometheus-stack)
-resource "null_resource" "grafana_port_forward" {
-  triggers = {
-    helm_id = helm_release.kube_prometheus_stack.id
-  }
+# 4. Helm Deployment passing the Role ARN
+resource "helm_release" "cluster_autoscaler" {
+  name       = "cluster-autoscaler"
+  repository = "https://kubernetes.github.io/autoscaler"
+  chart      = "cluster-autoscaler"
+  namespace  = "kube-system"
 
-  provisioner "local-exec" {
-    # Grafana service name typically matches the Helm release name + '-grafana'
-    command = "kubectl port-forward svc/kube-prometheus-stack-grafana -n monitoring 3000:80 > /dev/null 2>&1 &"
-  }
-
-  depends_on = [helm_release.kube_prometheus_stack]
+  values = [
+    <<-EOT
+    autoDiscovery:
+      clusterName: "${module.eks.cluster_name}"
+    rbac:
+      serviceAccount:
+        create: true
+        name: "cluster-autoscaler"
+        annotations:
+          # FIX: Change .iam_role_arn to .arn
+          eks.amazonaws.com/role-arn: "${module.cluster_autoscaler_irsa_role.arn}"
+    EOT
+  ]
 }

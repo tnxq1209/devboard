@@ -72,7 +72,7 @@ data "kubernetes_secret" "grafana_initial_admin_secret" {
 }
 
 output "grafana_admin_username" {
-  value = sensitive(data.kubernetes_secret.grafana_initial_admin_secret.data["admin-user"])
+  value     = sensitive(data.kubernetes_secret.grafana_initial_admin_secret.data["admin-user"])
   sensitive = true
 }
 

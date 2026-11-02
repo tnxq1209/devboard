@@ -23,6 +23,8 @@ module "eks" {
 
   control_plane_subnet_ids = module.vpc.intra_subnets
 
+  enable_irsa = true
+
   node_security_group_additional_rules = {
     ingress_self_http = {
       description = "Allow HTTP traffic between EKS nodes"
@@ -54,25 +56,23 @@ module "eks" {
 
   addons = {
     coredns = {
-      addon_version = "v1.14.7-eksbuild.11"
+      resolve_conflicts_on_create = "OVERWRITE"
+      resolve_conflicts_on_update = "PRESERVE"
     }
 
     kube-proxy = {
-      addon_version = "v1.37.0-eksbuild.22"
-    }
+      resolve_conflicts_on_create = "OVERWRITE"
+      resolve_conflicts_on_update = "PRESERVE"    }
 
     vpc-cni = {
-      addon_version  = "v1.22.4-eksbuild.3"
-      before_compute = true
+      before_compute              = true 
+      resolve_conflicts_on_create = "OVERWRITE"
+      resolve_conflicts_on_update = "PRESERVE"
     }
 
     eks-pod-identity-agent = {
       addon_version  = "v1.3.10-eksbuild.3"
       before_compute = true
-    }
-
-    metrics-server = {
-      addon_version = "v0.9.0-eksbuild.13"
     }
   }
 
@@ -98,6 +98,8 @@ module "eks" {
         }
       }
 
+      enable_cluster_autoscaler = true
+
       subnet_ids = module.vpc.private_subnets
 
       labels = {
@@ -121,5 +123,9 @@ module "eks" {
     Environment = "dev"
     ManagedBy   = "terraform"
   }
+
 }
+
+
+
 
