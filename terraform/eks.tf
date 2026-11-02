@@ -1,6 +1,3 @@
-data "aws_partition" "current" {}
-
-data "aws_caller_identity" "current" {}
 
 data "http" "my_public_ip" {
   url = "https://api.ipify.org"
