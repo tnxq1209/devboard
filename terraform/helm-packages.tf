@@ -61,9 +61,8 @@ resource "helm_release" "kube_prometheus_stack" {
     })
   ]
 
-  timeout = 900
-  wait    = true
-  depends_on = [module.eks]
+  timeout    = 900
+  wait       = true
 }
 
 resource "helm_release" "envoy_gateway" {
@@ -92,7 +91,6 @@ resource "helm_release" "envoy_gateway" {
       }
     })
   ]
-  depends_on = [ module.eks ]
 }
 
 # 2. Argo CD Helm Deployment
@@ -118,8 +116,6 @@ resource "helm_release" "argocd" {
 
   timeout = 900
   wait    = true
-
-  depends_on = [module.eks]
 }
 
 # 3. Metrics Server Helm Deployment
@@ -141,8 +137,7 @@ resource "helm_release" "metrics_server" {
         memory: 200Mi
     EOT
   ]
-  timeout            = 600 # 10 minutes for deployment wait time
-  depends_on         = [module.eks]
+  timeout    = 600 # 10 minutes for deployment wait time
 }
 
 # 4. Helm Deployment passing the Role ARN
