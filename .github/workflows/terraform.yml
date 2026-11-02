@@ -28,10 +28,8 @@ jobs:
       fail-fast: false
       matrix:
         dir:
+          - terraform/
           - terraform/backend-s3
-          - terraform/cluster/network
-          - terraform/cluster/eks
-          - terraform/cluster/addons
 
     steps:
       - name: Checkout repository
