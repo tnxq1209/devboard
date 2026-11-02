@@ -32,6 +32,8 @@ spec:
           env:
             - name: OLLAMA_MODEL
               value: llama3.2:1b
+            - name: OLLAMA_NUM_PARALLEL
+              value: "1"
           # Start the server, wait for it, then pull the model. `wait` keeps the
           # server as the foreground process. Readiness (below) only passes once
           # the model is present, so the Service won't send traffic too early.
