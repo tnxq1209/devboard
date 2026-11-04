@@ -19,13 +19,13 @@ variable "kubernetes_version" {
 variable "node_instance_types" {
   description = "EC2 instance types for the EKS managed node group."
   type        = list(string)
-  default     = ["c7i-flex.large"]
+  default     = ["t3.large"]
 }
 
 variable "node_desired_size" {
   description = "Desired number of EKS worker nodes."
   type        = number
-  default     = 2
+  default     = 1
 }
 
 variable "node_min_size" {
