@@ -18,7 +18,7 @@ spec:
       containers:
       - name: devboard-frontend
         # ":ai" includes the AI Assistant page (rebuilt image).
-        image: tnxq1209/devboard-frontend@sha256:1d076502e0fc0fb6d898ca48de6ad3257fb41f28899e712c7103677b54b7975f
+        image: tnxq1209/devboard-frontend@sha256:5b92a5950265d6715b65e022d88577969a23f7a115b1d88ad403340c2e67fe13
         ports:
         - containerPort: 80
         livenessProbe:

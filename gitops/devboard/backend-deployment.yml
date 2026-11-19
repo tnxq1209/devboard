@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: devboard-backend
-        image: tnxq1209/devboard-backend@sha256:3909da19eb8ff74617a33171d20bb1af2478f66ddf046f40c9c58afeebcefb6e
+        image: tnxq1209/devboard-backend@sha256:9c353e4b4180021dbfe78f5f2493acfa7fc757181bc13bb29bd563e2312d61c7
         ports:
           - containerPort: 8080
         env:
