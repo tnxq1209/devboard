@@ -41,6 +41,37 @@ var (
 		},
 		[]string{"method", "route"},
 	)
+
+	httpRequestsInFlight = prometheus.NewGauge(
+		prometheus.GaugeOpts{
+			Name: "devboard_http_requests_in_flight",
+			Help: "Current number of HTTP requests being handled by the DevBoard backend.",
+		},
+	)
+
+	dbOpenConnections = prometheus.NewGaugeFunc(
+		prometheus.GaugeOpts{
+			Name: "devboard_db_connections_open",
+			Help: "Current number of open PostgreSQL connections in the backend pool.",
+		},
+		func() float64 { return float64(db.Stats().OpenConnections) },
+	)
+
+	dbInUseConnections = prometheus.NewGaugeFunc(
+		prometheus.GaugeOpts{
+			Name: "devboard_db_connections_in_use",
+			Help: "Current number of PostgreSQL connections in use by the backend.",
+		},
+		func() float64 { return float64(db.Stats().InUse) },
+	)
+
+	dbIdleConnections = prometheus.NewGaugeFunc(
+		prometheus.GaugeOpts{
+			Name: "devboard_db_connections_idle",
+			Help: "Current number of idle PostgreSQL connections in the backend pool.",
+		},
+		func() float64 { return float64(db.Stats().Idle) },
+	)
 )
 
 // Task mirrors the JSON shape the React UI expects.
@@ -88,7 +119,14 @@ func main() {
 	}
 	log.Println("[backend] connected to postgres")
 
-	prometheus.MustRegister(httpRequestsTotal, httpRequestDuration)
+	prometheus.MustRegister(
+		httpRequestsTotal,
+		httpRequestDuration,
+		httpRequestsInFlight,
+		dbOpenConnections,
+		dbInUseConnections,
+		dbIdleConnections,
+	)
 
 	r := gin.Default()
 	r.Use(prometheusMiddleware())
@@ -115,14 +153,17 @@ func main() {
 
 func prometheusMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		start := time.Now()
-
-		c.Next()
-
-		// Avoid counting Prometheus scrape requests.
+		// Do not include Prometheus scrapes in application request metrics.
 		if c.Request.URL.Path == "/metrics" {
+			c.Next()
 			return
 		}
+
+		start := time.Now()
+		httpRequestsInFlight.Inc()
+		defer httpRequestsInFlight.Dec()
+
+		c.Next()
 
 		route := c.FullPath()
 		if route == "" {
@@ -132,16 +173,8 @@ func prometheusMiddleware() gin.HandlerFunc {
 		method := c.Request.Method
 		status := strconv.Itoa(c.Writer.Status())
 
-		httpRequestsTotal.WithLabelValues(
-			method,
-			route,
-			status,
-		).Inc()
-
-		httpRequestDuration.WithLabelValues(
-			method,
-			route,
-		).Observe(time.Since(start).Seconds())
+		httpRequestsTotal.WithLabelValues(method, route, status).Inc()
+		httpRequestDuration.WithLabelValues(method, route).Observe(time.Since(start).Seconds())
 	}
 }
 
