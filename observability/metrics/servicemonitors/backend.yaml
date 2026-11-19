@@ -1,0 +1,20 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: devboard-backend
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+    app.kubernetes.io/name: devboard-backend
+spec:
+  namespaceSelector:
+    matchNames:
+      - devboard
+  selector:
+    matchLabels:
+      app: devboard-backend
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+      scrapeTimeout: 10s

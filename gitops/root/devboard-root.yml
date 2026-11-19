@@ -14,6 +14,8 @@ spec:
             path: gitops/ollama
           - app: liveness-check
             path: gitops/verifier_rbac
+          - app: observability
+            path: observability/metrics/servicemonitors
   # Template that will be used to generate individual Application CRs
   template:
     metadata:
