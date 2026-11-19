@@ -15,7 +15,7 @@ spec:
           - app: liveness-check
             path: gitops/verifier_rbac
           - app: observability
-            path: observability/metrics/servicemonitors
+            path: observability/metrics
   # Template that will be used to generate individual Application CRs
   template:
     metadata:
