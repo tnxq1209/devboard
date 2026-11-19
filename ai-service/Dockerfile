@@ -6,9 +6,11 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /app
 
-# curl/ca-certificates come from the trusted base distro; no version pin needed.
+# Update base packages and install runtime dependencies.
 # hadolint ignore=DL3008
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update \
+    && apt-get upgrade -y \
+    && apt-get install -y --no-install-recommends \
         curl ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
