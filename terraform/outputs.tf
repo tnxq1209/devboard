@@ -38,7 +38,7 @@ output "cluster_security_group_id" {
   description = "Cluster security group ID."
   value       = module.eks.cluster_security_group_id
 }
-
+/*
 # Argocd: Initial admin password.
 
 data "kubernetes_secret" "argocd_initial_admin_secret" {
@@ -108,3 +108,4 @@ output "argocd_url" {
 output "grafana_url" {
   value = "http://${data.kubernetes_service.grafana_lb.status[0].load_balancer[0].ingress[0].hostname}"
 }
+*/

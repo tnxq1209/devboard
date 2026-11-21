@@ -70,3 +70,8 @@ variable "kube_prom_stack_version" {
   default     = "92.14.0"
 }
 
+variable "cluster_autoscaler_version" {
+  description = "Kube prometheus stack version"
+  type        = string
+  default     = "9.35.0"
+}
