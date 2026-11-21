@@ -1,0 +1,100 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: devboard-alerts
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+    app.kubernetes.io/name: devboard
+    app.kubernetes.io/part-of: devboard
+spec:
+  groups:
+    - name: devboard.availability
+      rules:
+        - alert: BackendDown
+          expr: |
+            absent(up{job="backend", namespace="devboard"})
+            or up{job="backend", namespace="devboard"} == 0
+          for: 2m
+          labels:
+            severity: critical
+            service: backend
+          annotations:
+            summary: DevBoard backend is unavailable
+            description: Prometheus cannot scrape the DevBoard backend in namespace devboard.
+
+        - alert: AIServiceDown
+          expr: |
+            absent(up{job="ai-service", namespace="devboard"})
+            or up{job="ai-service", namespace="devboard"} == 0
+          for: 2m
+          labels:
+            severity: critical
+            service: ai-service
+          annotations:
+            summary: DevBoard AI service is unavailable
+            description: Prometheus cannot scrape the DevBoard AI service in namespace devboard.
+
+    - name: devboard.http
+      rules:
+        - alert: BackendHighHTTP5xxRate
+          expr: |
+            (
+              sum(rate(devboard_http_requests_total{namespace="devboard", status=~"5.."}[5m]))
+              /
+              clamp_min(sum(rate(devboard_http_requests_total{namespace="devboard"}[5m])), 0.001)
+            ) > 0.05
+          for: 5m
+          labels:
+            severity: warning
+            service: backend
+          annotations:
+            summary: Backend HTTP 5xx rate is above 5%
+            description: More than 5% of backend HTTP requests have returned 5xx responses for 5 minutes.
+
+        - alert: BackendHighP95Latency
+          expr: |
+            histogram_quantile(
+              0.95,
+              sum by (le) (
+                rate(devboard_http_request_duration_seconds_bucket{namespace="devboard"}[5m])
+              )
+            ) > 1
+          for: 5m
+          labels:
+            severity: warning
+            service: backend
+          annotations:
+            summary: Backend p95 HTTP latency is above 1 second
+            description: The backend 95th percentile HTTP request latency has exceeded 1 second for 5 minutes.
+
+        - alert: AIGenerationErrors
+          expr: |
+            sum by (operation, reason) (
+              increase(ai_service_generation_errors_total{namespace="devboard"}[10m])
+            ) > 3
+          for: 2m
+          labels:
+            severity: warning
+            service: ai-service
+          annotations:
+            summary: AI generation errors detected
+            description: More than 3 AI generation errors occurred in the last 10 minutes.
+
+    - name: devboard.kubernetes
+      rules:
+        - alert: DevBoardContainerRestarting
+          expr: |
+            increase(
+              kube_pod_container_status_restarts_total{
+                namespace="devboard",
+                pod=~"devboard-(backend|ai-service).*"
+              }[10m]
+            ) >= 3
+          for: 2m
+          labels:
+            severity: warning
+            service: devboard
+          annotations:
+            summary: DevBoard container is restarting repeatedly
+            description: A DevBoard backend or AI service container has restarted at least 3 times in 10 minutes.
