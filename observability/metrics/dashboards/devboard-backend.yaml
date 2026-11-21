@@ -6,7 +6,7 @@ metadata:
   labels:
     grafana_dashboard: "1"
 data:
-  dashboard.json: |
+  backend-dashboard.json: |
     {
       "annotations": {
         "list": [
