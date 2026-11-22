@@ -27,7 +27,7 @@ module "eks_blueprints_addons" {
         value = module.vpc.vpc_id
       }
     ]
-  }  
+  }
 
   helm_releases = {
     kube-prometheus-stack = {
@@ -48,7 +48,7 @@ module "eks_blueprints_addons" {
               storageClassName = "gp3"
             }
             service = {
-              type = "LoadBalancer"
+              type = "ClusterIP"
             }
           }
 
@@ -133,10 +133,36 @@ module "eks_blueprints_addons" {
           server = {
             extraArgs = ["--insecure"]
             service = {
-              type = "LoadBalancer"
+              type = "ClusterIP"
             }
           }
         })
+      ]
+    }
+
+    loki = {
+      description      = "Loki log aggregation"
+      chart            = "loki"
+      chart_version    = var.loki_chart_version
+      repository       = "https://grafana-community.github.io/helm-charts"
+      namespace        = "monitoring"
+      create_namespace = true
+
+      values = [
+        file("${path.module}/../observability/logging/loki-values.yaml")
+      ]
+    }
+
+    alloy = {
+      description      = "Grafana Alloy Kubernetes log collector"
+      chart            = "alloy"
+      chart_version    = var.alloy_chart_version
+      repository       = "https://grafana.github.io/helm-charts"
+      namespace        = "monitoring"
+      create_namespace = true
+
+      values = [
+        file("${path.module}/../observability/logging/alloy-values.yaml")
       ]
     }
   }
@@ -246,6 +272,12 @@ module "eks" {
 
       subnet_ids = module.vpc.private_subnets
 
+      # Required tags for Cluster Autoscaler auto-discovery
+      tags = {
+        "k8s.io/cluster-autoscaler/enabled"             = "true"
+        "k8s.io/cluster-autoscaler/${var.cluster_name}" = "owned"
+      }
+
       labels = {
         Environment = "dev"
         NodeGroup   = "default"
@@ -268,26 +300,4 @@ module "eks" {
     ManagedBy   = "terraform"
   }
 
-}
-
-resource "helm_release" "cluster_autoscaler" {
-  name       = "cluster-autoscaler"
-  repository = "https://kubernetes.github.io/autoscaler"
-  chart      = "cluster-autoscaler"
-  namespace  = "kube-system"
-  version    = var.cluster_autoscaler_version
-
-  values = [
-    <<-EOT
-    autoDiscovery:
-      clusterName: "${module.eks.cluster_name}"
-    rbac:
-      serviceAccount:
-        create: true
-        name: "cluster-autoscaler"
-        annotations:
-          # FIX: Change .iam_role_arn to .arn
-          eks.amazonaws.com/role-arn: "${module.cluster_autoscaler_irsa_role.arn}"
-    EOT
-  ]
 }

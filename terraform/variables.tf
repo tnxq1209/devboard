@@ -75,3 +75,15 @@ variable "cluster_autoscaler_version" {
   type        = string
   default     = "9.35.0"
 }
+
+variable "loki_chart_version" {
+  description = "Grafana Community Loki Helm chart version."
+  type        = string
+  default     = "21.2.3"
+}
+
+variable "alloy_chart_version" {
+  description = "Grafana Alloy Helm chart version."
+  type        = string
+  default     = "1.16.0"
+}
