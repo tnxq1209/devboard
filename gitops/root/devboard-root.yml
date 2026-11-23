@@ -16,6 +16,8 @@ spec:
             path: gitops/verifier_rbac
           - app: observability
             path: observability/metrics
+          - app: observability-logging
+            path: observability/logging
   # Template that will be used to generate individual Application CRs
   template:
     metadata:
