@@ -18,6 +18,8 @@ spec:
             path: observability/metrics
           - app: observability-logging
             path: observability/logging
+          - app: observability-tracing
+            path: observability/tracing
   # Template that will be used to generate individual Application CRs
   template:
     metadata:

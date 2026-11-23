@@ -31,6 +31,8 @@ spec:
               value: http://ollama.ollama.svc.cluster.local:11434/v1
             - name: MODEL_NAME
               value: llama3.2:1b
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: otel-collector.monitoring.svc.cluster.local:4317
           livenessProbe:
             httpGet:
               path: /health

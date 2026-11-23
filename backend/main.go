@@ -8,6 +8,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"log"
 	"net/http"
@@ -20,6 +21,7 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 )
 
 var db *sql.DB
@@ -97,6 +99,18 @@ type Project struct {
 }
 
 func main() {
+	shutdownTracing, err := initTracing()
+	if err != nil {
+		log.Fatalf("[backend] FATAL initialize tracing: %v", err)
+	}
+	defer func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if err := shutdownTracing(ctx); err != nil {
+			log.Printf("[backend] tracing shutdown error: %v", err)
+		}
+	}()
+
 	dsn := env("POSTGRES_URL", "postgres://devboard:devboard@localhost:5432/devboard?sslmode=disable")
 
 	var err error
@@ -129,6 +143,8 @@ func main() {
 	)
 
 	r := gin.Default()
+	// Extract W3C trace context from incoming requests and create a server span.
+	r.Use(otelgin.Middleware("devboard-backend"))
 	r.Use(prometheusMiddleware())
 
 	r.GET("/metrics", gin.WrapH(promhttp.Handler()))

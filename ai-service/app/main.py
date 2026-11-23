@@ -1,5 +1,6 @@
 """DevBoard AI service — context-aware AI over Server-Sent Events."""
 
+import atexit
 import json
 import logging
 import os
@@ -8,6 +9,14 @@ from typing import Iterable
 
 import httpx
 from flask import Flask, Response, jsonify, request, stream_with_context
+from opentelemetry import trace
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from opentelemetry.sdk.resources import Resource
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.trace import Status, StatusCode
+from opentelemetry.instrumentation.flask import FlaskInstrumentor
+from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
 from prometheus_client import (
     CONTENT_TYPE_LATEST,
     CollectorRegistry,
@@ -29,6 +38,27 @@ logging.basicConfig(
 log = logging.getLogger("ai-service")
 
 app = Flask(__name__)
+
+# Export traces to the in-cluster OpenTelemetry Collector over plaintext OTLP/gRPC.
+otel_endpoint = os.environ.get(
+    "OTEL_EXPORTER_OTLP_ENDPOINT",
+    "otel-collector.monitoring.svc.cluster.local:4317",
+)
+tracer_provider = TracerProvider(
+    resource=Resource.create({"service.name": "devboard-ai-service"})
+)
+tracer_provider.add_span_processor(
+    BatchSpanProcessor(OTLPSpanExporter(endpoint=otel_endpoint, insecure=True))
+)
+trace.set_tracer_provider(tracer_provider)
+atexit.register(tracer_provider.shutdown)
+
+# Instrument inbound Flask requests and outbound HTTPX calls. HTTPX instrumentation
+# injects W3C trace context into calls to the Go backend and Ollama.
+FlaskInstrumentor().instrument_app(app, excluded_urls="health,metrics")
+HTTPXClientInstrumentor().instrument()
+
+tracer = trace.get_tracer("devboard-ai-service")
 
 # The Go backend exposes GET /tasks?project_id=N -> {"tasks": [...]}.
 TASK_SERVICE_URL = os.environ.get("TASK_SERVICE_URL", "http://backend:8080").rstrip("/")
@@ -160,29 +190,38 @@ def _format_tasks_for_prompt(tasks: list[dict]) -> str:
 
 
 def _observe_generation(generator: Iterable[str], operation: str) -> Iterable[str]:
-    """Measure model streaming duration and record upstream/stream failures."""
+    """Measure and trace the complete streamed model-generation lifetime."""
     started = time.perf_counter()
     outcome = "success"
     failure_reason = None
-    try:
-        for chunk in generator:
-            if chunk.startswith("[model-error"):
-                outcome = "error"
-                failure_reason = "upstream_error"
-            yield chunk
-    except GeneratorExit:
-        outcome = "cancelled"
-        failure_reason = "client_disconnect"
-        raise
-    except Exception:
-        outcome = "error"
-        failure_reason = "exception"
-        raise
-    finally:
-        ai_generation_duration.labels(operation).observe(time.perf_counter() - started)
-        ai_generations_total.labels(operation, outcome).inc()
-        if failure_reason is not None:
-            ai_generation_errors_total.labels(operation, failure_reason).inc()
+
+    with tracer.start_as_current_span("ai.generation") as span:
+        span.set_attribute("ai.operation", operation)
+        span.set_attribute("gen_ai.request.model", MODEL_NAME)
+        try:
+            for chunk in generator:
+                if chunk.startswith("[model-error"):
+                    outcome = "error"
+                    failure_reason = "upstream_error"
+                    span.set_status(Status(StatusCode.ERROR, "upstream model error"))
+                yield chunk
+        except GeneratorExit:
+            outcome = "cancelled"
+            failure_reason = "client_disconnect"
+            span.set_status(Status(StatusCode.ERROR, "client disconnected"))
+            raise
+        except Exception as err:
+            outcome = "error"
+            failure_reason = "exception"
+            span.record_exception(err)
+            span.set_status(Status(StatusCode.ERROR, str(err)))
+            raise
+        finally:
+            ai_generation_duration.labels(operation).observe(time.perf_counter() - started)
+            ai_generations_total.labels(operation, outcome).inc()
+            span.set_attribute("ai.outcome", outcome)
+            if failure_reason is not None:
+                ai_generation_errors_total.labels(operation, failure_reason).inc()
 
 
 def _sse(generator: Iterable[str], operation: str):

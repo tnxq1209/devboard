@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: devboard-backend
-        image: tnxq1209/devboard-backend:latest
+        image: tnxq1209/devboard-backend@sha256:9c353e4b4180021dbfe78f5f2493acfa7fc757181bc13bb29bd563e2312d61c7
         ports:
           - containerPort: 8080
         env:
@@ -44,6 +44,8 @@ spec:
           
           - name: PORT
             value: "8080"
+          - name: OTEL_EXPORTER_OTLP_ENDPOINT
+            value: otel-collector.monitoring.svc.cluster.local:4317
         livenessProbe:
           httpGet:
             path: /health
