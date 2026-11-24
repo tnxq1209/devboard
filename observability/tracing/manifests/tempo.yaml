@@ -29,6 +29,12 @@ spec:
       labels:
         app.kubernetes.io/name: tempo
     spec:
+      securityContext:
+        runAsUser: 10001
+        runAsGroup: 10001
+        runAsNonRoot: true
+        fsGroup: 10001
+        fsGroupChangePolicy: OnRootMismatch
       containers:
         - name: tempo
           image: grafana/tempo:2.7.2
