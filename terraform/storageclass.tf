@@ -16,5 +16,7 @@ resource "kubernetes_storage_class_v1" "gp3" {
     encrypted = "true"
     fsType    = "ext4"
   }
-  depends_on = [module.eks]
+  depends_on = [
+    aws_eks_addon.ebs_csi
+  ]
 }
