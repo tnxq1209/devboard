@@ -1,5 +1,4 @@
 """DevBoard AI service — context-aware AI over Server-Sent Events."""
-
 import atexit
 import json
 import logging
@@ -11,12 +10,12 @@ import httpx
 from flask import Flask, Response, jsonify, request, stream_with_context
 from opentelemetry import trace
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from opentelemetry.instrumentation.flask import FlaskInstrumentor
+from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.trace import Status, StatusCode
-from opentelemetry.instrumentation.flask import FlaskInstrumentor
-from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
 from prometheus_client import (
     CONTENT_TYPE_LATEST,
     CollectorRegistry,
