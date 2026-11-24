@@ -113,7 +113,6 @@ func main() {
 
 	dsn := env("POSTGRES_URL", "postgres://devboard:devboard@localhost:5432/devboard?sslmode=disable")
 
-	var err error
 	db, err = sql.Open("postgres", dsn)
 	if err != nil {
 		log.Fatalf("[backend] FATAL open db: %v", err)
