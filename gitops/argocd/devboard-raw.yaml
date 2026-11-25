@@ -12,7 +12,7 @@ spec:
   source:
     repoURL: https://github.com/tnxq1209/devboard.git
     targetRevision: master
-    path: gitops/devboard
+    path: k8s
 
   destination:
     server: https://kubernetes.default.svc
