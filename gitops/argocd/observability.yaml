@@ -8,13 +8,7 @@ spec:
   generators:
     - list:
         elements:
-          - app: devboard 
-            path: gitops/devboard 
-          - app: ollama
-            path: gitops/ollama
-          - app: liveness-check
-            path: gitops/verifier_rbac
-          - app: observability
+          - app: observability-metrics
             path: observability/metrics
           - app: observability-logging
             path: observability/logging
@@ -32,7 +26,7 @@ spec:
         targetRevision: master
         path: '{{path}}'
         directory:
-          recurse: true # resolved from element
+          recurse: true # recurse to each subdirectory
       destination:
         server: https://kubernetes.default.svc
         namespace: devboard
