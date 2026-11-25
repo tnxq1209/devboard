@@ -10,19 +10,6 @@ variable "cluster_name" {
   default     = "test-eks"
 }
 
-variable "kubernetes_version" {
-  description = "Kubernetes version for EKS."
-  type        = string
-  default     = "1.36"
-}
-
-
-variable "vpc_cidr" {
-  description = "CIDR block for the DevBoard VPC."
-  type        = string
-  default     = "10.0.0.0/16"
-}
-
 variable "argocd_chart_version" {
   description = "Argo CD Helm chart version"
   type        = string

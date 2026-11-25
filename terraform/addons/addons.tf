@@ -6,7 +6,7 @@ module "eks_blueprints_addons" {
   cluster_endpoint  = data.aws_eks_cluster.cluster.endpoint
   cluster_version   = data.aws_eks_cluster.cluster.version
   oidc_provider_arn = data.aws_iam_openid_connect_provider.eks.arn
-/*
+  /*
   enable_aws_load_balancer_controller = true
 
   aws_load_balancer_controller = {
