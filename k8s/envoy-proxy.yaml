@@ -2,7 +2,9 @@ apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: EnvoyProxy
 metadata:
   name: devboard-proxy-config
-  namespace: envoy-gateway-system
+  namespace: devboard
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
 spec:
   provider:
     type: Kubernetes
@@ -11,3 +13,7 @@ spec:
         type: LoadBalancer
         loadBalancerClass: service.k8s.aws/nlb
         externalTrafficPolicy: Local
+        annotations:
+          service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
+          service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: instance
+

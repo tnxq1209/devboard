@@ -21,6 +21,7 @@ metadata:
 spec:
   parentRefs:
     - name: devboard-gateway
+    - name: devboard-gateway-nlb
   rules:
     # /api/ai/* → ai-service. A longer prefix than "/", so it wins for AI calls.
     # URLRewrite strips "/api/ai" so the service sees /summarise, /ask, etc.
