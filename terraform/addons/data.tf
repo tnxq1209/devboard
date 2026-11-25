@@ -6,7 +6,7 @@ data "aws_eks_cluster" "cluster" {
 data "aws_iam_openid_connect_provider" "eks" {
   url = data.aws_eks_cluster.cluster.identity[0].oidc[0].issuer
 }
-/*
+
 data "terraform_remote_state" "network" {
   backend = "s3"
 
@@ -16,4 +16,3 @@ data "terraform_remote_state" "network" {
     region = "ap-south-1"
   }
 }
-*/
