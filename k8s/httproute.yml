@@ -20,7 +20,6 @@ metadata:
   namespace: devboard
 spec:
   parentRefs:
-    - name: devboard-gateway
     - name: devboard-gateway-nlb
   rules:
     # /api/ai/* → ai-service. A longer prefix than "/", so it wins for AI calls.
