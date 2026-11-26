@@ -13,3 +13,19 @@ spec:
     - devboard.site
     - www.devboard.site
 
+---
+
+
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: devboard-site-prod
+  namespace: devboard
+spec:
+  secretName: devboard-site-tls-prod
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  dnsNames:
+    - devboard.site
+    - www.devboard.site
