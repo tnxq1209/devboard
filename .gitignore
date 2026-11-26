@@ -35,3 +35,6 @@ crash.*.log
 *.tfvars
 *.tfvars.json
 !*.tfvars.example
+
+# Kubernetes secrets
+k8s/secrets/
