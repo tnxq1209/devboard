@@ -15,9 +15,43 @@ spec:
 
   listeners:
     - name: http
+      hostname: devboard.site
       protocol: HTTP
       port: 80
       allowedRoutes:
         namespaces:
           from: Same
 
+    - name: https
+      hostname: devboard.site
+      protocol: HTTPS
+      port: 443
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            name: devboard-site-tls-staging
+      allowedRoutes:
+        namespaces:
+          from: Same
+
+    - name: http-www
+      hostname: www.devboard.site
+      protocol: HTTP
+      port: 80
+      allowedRoutes:
+        namespaces:
+          from: Same
+
+    - name: https-www
+      hostname: www.devboard.site
+      protocol: HTTPS
+      port: 443
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            name: devboard-site-tls-staging
+      allowedRoutes:
+        namespaces:
+          from: Same
