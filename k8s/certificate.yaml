@@ -1,22 +1,4 @@
-
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: devboard-site-staging
-  namespace: devboard
-spec:
-  secretName: devboard-site-tls-staging
-  issuerRef:
-    name: letsencrypt-staging
-    kind: ClusterIssuer
-  dnsNames:
-    - devboard.site
-    - www.devboard.site
-
----
-
-
-apiVersion: cert-manager.io/v1
+zapiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: devboard-site-prod
