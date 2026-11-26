@@ -8,6 +8,8 @@ spec:
   parentRefs:
     - name: devboard-gateway-nlb
       sectionName: https
+    - name: devboard-gateway-nlb
+      sectionName: https-www
   hostnames:
     - devboard.site
     - www.devboard.site
