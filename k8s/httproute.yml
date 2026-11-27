@@ -4,6 +4,8 @@ kind: HTTPRoute
 metadata:
   name: devboard-route
   namespace: devboard
+  annotations:
+    external-dns.kubernetes.io/manage: "true"
 spec:
   parentRefs:
     - name: devboard-gateway-nlb
