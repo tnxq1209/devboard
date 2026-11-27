@@ -4,6 +4,8 @@ kind: Gateway
 metadata:
   name: devboard-gateway-nlb
   namespace: devboard
+  annotations:
+    external-dns.kubernetes.io/manage: "true"
 spec:
   gatewayClassName: envoy
 
