@@ -39,7 +39,7 @@ spec:
                 key: api-token
 
         extraArgs:
-          dry-run: "true"
+          dry-run: true
           zone-id-filter: "194bba2ff0c3deb2407fcb533ea383f0"
           cloudflare-dns-records-per-page: "5000"
 
