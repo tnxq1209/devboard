@@ -3,7 +3,7 @@ set -Eeuo pipefail
 
 # Override these with environment variables if needed.
 AWS_REGION="${AWS_REGION:-ap-south-1}"
-EKS_CLUSTER_NAME="${EKS_CLUSTER_NAME:-test-eks}"
+EKS_CLUSTER_NAME="${EKS_CLUSTER_NAME:-devboard-eks}"
 
 ARGOCD_NAMESPACE="${ARGOCD_NAMESPACE:-argocd}"
 ARGOCD_SERVICE="${ARGOCD_SERVICE:-argocd-server}"
