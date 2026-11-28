@@ -147,6 +147,9 @@ module "eks_blueprints_addons" {
 
       values = [
         yamlencode({
+          application = {
+              instanceLabelKey = "argocd.argoproj.io/instance"
+            }
           server = {
             extraArgs = ["--insecure"]
             service = {
