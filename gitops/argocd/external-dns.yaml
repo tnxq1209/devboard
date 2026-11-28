@@ -26,7 +26,7 @@ spec:
         domainFilters:
           - devboard.site
 
-        ## annotationFilter: external-dns.kubernetes.io/manage=true
+        annotationFilter: external-dns.kubernetes.io/manage=true
 
         policy: upsert-only
         registry: txt
