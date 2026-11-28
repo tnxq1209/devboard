@@ -6,6 +6,7 @@ metadata:
   namespace: devboard
   annotations:
     external-dns.kubernetes.io/manage: "true"
+    external-dns.kubernetes.io/controller: ignore
 spec:
   parentRefs:
     - name: devboard-gateway-nlb
